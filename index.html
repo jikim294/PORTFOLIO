@@ -9,7 +9,6 @@
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
   body {
-    /* XP uses Tahoma heavily */
     font-family: 'Tahoma', 'Trebuchet MS', sans-serif;
     width: 100vw;
     height: 100vh;
@@ -17,42 +16,27 @@
     background: #000;
     cursor: default;
     user-select: none;
+    perspective: 1000px; /* 3D 효과를 위한 원근감 설정 */
   }
 
-  /* ── SPACE BACKGROUND ── */
-  #space {
+  /* ── 3D BACKGROUND ── */
+  #bg-container {
     position: fixed;
-    inset: 0;
-    background: radial-gradient(ellipse at 30% 40%, #0a0a2e 0%, #000005 60%, #000 100%);
+    /* 화면 바깥으로 여백을 주어 움직일 때 테두리가 보이지 않게 함 */
+    top: -10%; left: -10%;
+    width: 120%; height: 120%;
+    background: url('faded_gallery-SiAJGyR15Aw-unsplash.jpg') center/cover no-repeat;
     z-index: 0;
     will-change: transform;
+    /* 마우스 움직임에 따른 부드러운 전환 효과 */
+    transition: transform 0.15s ease-out; 
   }
 
-  #stars-layer-1, #stars-layer-2, #stars-layer-3 {
-    position: absolute;
-    inset: -20%;
-    width: 140%;
-    height: 140%;
-    will-change: transform;
-    transition: transform 0.08s ease-out;
-  }
-
-  #nebula {
-    position: absolute;
-    inset: 0;
-    background:
-      radial-gradient(ellipse 60% 40% at 25% 35%, rgba(60,20,120,0.25) 0%, transparent 70%),
-      radial-gradient(ellipse 40% 50% at 70% 65%, rgba(10,40,100,0.2) 0%, transparent 70%),
-      radial-gradient(ellipse 30% 20% at 80% 20%, rgba(80,10,60,0.15) 0%, transparent 60%);
-    will-change: transform;
-    transition: transform 0.12s ease-out;
-  }
-
-  /* ── WINDOWS XP TASKBAR ── */
+  /* ── WINDOWS XP TASKBAR (1.2배 확대) ── */
   #taskbar {
     position: fixed;
     bottom: 0; left: 0; right: 0;
-    height: 30px;
+    height: 42px; /* 30px -> 42px */
     background: linear-gradient(to bottom, #245edb 0%, #3f8cf3 9%, #245edb 18%, #245edb 92%, #333 100%);
     border-top: 1px solid #000;
     display: flex;
@@ -66,23 +50,23 @@
     color: white;
     font-weight: bold;
     font-style: italic;
-    font-size: 14px;
-    padding: 0 16px 0 12px;
+    font-size: 18px; /* 14px -> 18px */
+    padding: 0 20px 0 16px;
     display: flex;
     align-items: center;
-    border-radius: 0 10px 10px 0;
+    border-radius: 0 12px 12px 0;
     box-shadow: 2px 0 4px rgba(0,0,0,0.4), inset 1px 1px 2px rgba(255,255,255,0.4);
     cursor: pointer;
   }
   .start-btn:hover { filter: brightness(1.1); }
   .start-btn:active { box-shadow: inset 2px 2px 4px rgba(0,0,0,0.5); }
-  .start-logo { margin-right: 6px; font-style: normal; font-size: 16px; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); }
+  .start-logo { margin-right: 8px; font-style: normal; font-size: 20px; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); }
 
   .taskbar-items {
     display: flex;
     flex: 1;
-    padding: 0 10px;
-    gap: 4px;
+    padding: 0 12px;
+    gap: 5px;
   }
 
   .system-tray {
@@ -90,91 +74,81 @@
     height: 100%;
     display: flex;
     align-items: center;
-    padding: 0 12px;
+    padding: 0 16px;
     border-left: 1px solid #1042af;
     color: white;
-    font-size: 11px;
+    font-size: 13px; /* 11px -> 13px */
     box-shadow: inset 1px 0 1px rgba(255,255,255,0.2);
   }
 
   /* ── DESKTOP ── */
   #desktop {
     position: fixed;
-    inset: 0 0 30px 0; /* Taskbar height offset */
+    inset: 0 0 42px 0;
     z-index: 10;
   }
 
-  /* ── ICONS ── */
+  /* ── ICONS (1.2배 확대) ── */
   .icon {
     position: absolute;
-    width: 76px;
+    width: 90px; /* 76px -> 90px */
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 4px;
+    gap: 6px;
     cursor: pointer;
-    padding: 4px;
-    border-radius: 2px;
+    padding: 6px;
+    border-radius: 3px;
   }
   .icon-img {
-    width: 48px;
-    height: 48px;
+    width: 58px; /* 48px -> 58px */
+    height: 58px;
     display: flex;
     align-items: center;
     justify-content: center;
   }
 
   .icon-label {
-    font-size: 11px;
+    font-size: 13px; /* 11px -> 13px */
     color: white;
     text-align: center;
     text-shadow: 1px 1px 2px black;
-    line-height: 1.2;
+    line-height: 1.3;
     word-break: break-word;
   }
 
-  /* selected icon XP style */
   .icon.selected .icon-img { filter: opacity(0.7) brightness(0.8) drop-shadow(0 0 4px blue); }
-  .icon.selected .icon-label {
-    background: #0b61ff;
-    color: white;
-    padding: 1px 3px;
-  }
+  .icon.selected .icon-label { background: #0b61ff; color: white; padding: 2px 4px; }
 
-  /* ── WINDOW (XP LUNA THEME) ── */
+  /* ── WINDOW (XP LUNA THEME - 1.2배 확대) ── */
   .window {
     position: absolute;
-    min-width: 340px;
-    min-height: 200px;
     border-radius: 8px 8px 3px 3px;
     background: #ece9d8;
     border: 3px solid #0055e5;
-    box-shadow: 2px 2px 10px rgba(0,0,0,0.5);
+    box-shadow: 3px 3px 12px rgba(0,0,0,0.5);
     z-index: 100;
-    display: none;
-    display: flex;
+    display: none; /* 디폴트: 숨김 */
     flex-direction: column;
   }
   .window.visible { display: flex; }
   .window.active { z-index: 200; }
 
   .window-titlebar {
-    height: 28px;
+    height: 34px; /* 28px -> 34px */
     background: linear-gradient(to bottom, #0058e6 0%, #3a93ff 20%, #288eff 40%, #116df6 100%);
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 4px 0 6px;
+    padding: 0 6px 0 8px;
     cursor: move;
   }
 
-  .window.inactive .window-titlebar {
-    background: linear-gradient(to bottom, #7ba2e7 0%, #8db3f8 20%, #7da2eb 40%, #688fdf 100%);
-  }
+  .window.inactive .window-titlebar { background: linear-gradient(to bottom, #7ba2e7 0%, #8db3f8 20%, #7da2eb 40%, #688fdf 100%); }
   .window.inactive { border-color: #7ba2e7; }
 
   .window-title {
-    font-size: 13px;
+    font-size: 15px; /* 13px -> 15px */
     font-weight: bold;
     color: white;
     pointer-events: none;
@@ -182,18 +156,17 @@
   }
 
   /* XP window controls */
-  .xp-controls { display: flex; gap: 2px; }
+  .xp-controls { display: flex; gap: 3px; }
   .xp-btn {
-    width: 21px; height: 21px;
+    width: 25px; height: 25px; /* 21px -> 25px */
     border: 1px solid white;
     border-radius: 3px;
     display: flex; align-items: center; justify-content: center;
-    color: white; font-size: 14px; font-weight: bold;
+    color: white; font-size: 16px; font-weight: bold;
     cursor: pointer; box-shadow: inset 0 1px 2px rgba(255,255,255,0.6), 1px 1px 2px rgba(0,0,0,0.3);
   }
-  .xp-btn-min, .xp-btn-max { background: linear-gradient(to bottom, #4c8cf5, #2b61d6); line-height: 10px; }
-  .xp-btn-close { background: linear-gradient(to bottom, #e8645a, #d82b1e); font-size: 11px; font-family: sans-serif; }
-  
+  .xp-btn-min, .xp-btn-max { background: linear-gradient(to bottom, #4c8cf5, #2b61d6); line-height: 12px; }
+  .xp-btn-close { background: linear-gradient(to bottom, #e8645a, #d82b1e); font-size: 13px; font-family: sans-serif; }
   .xp-btn:active { box-shadow: inset 1px 1px 3px rgba(0,0,0,0.5); padding-top: 1px; padding-left: 1px; }
 
   .window-body {
@@ -209,99 +182,88 @@
   .works-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 16px;
-    padding: 16px;
+    gap: 20px;
+    padding: 20px;
     background: #ffffff;
   }
 
-  .project-card {
-    background: #f8f8f8;
-    border: 1px solid #d0d0d0;
-    cursor: pointer;
-  }
+  .project-card { border: 1px solid #d0d0d0; cursor: pointer; background: #f8f8f8; }
   .project-card:hover { border-color: #0b61ff; background: #eff4ff; }
 
-  .project-thumb {
-    height: 100px;
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    display: flex; align-items: center; justify-content: center; font-size: 32px;
-  }
+  .project-thumb { height: 120px; background: linear-gradient(135deg, #667eea, #764ba2); display: flex; align-items: center; justify-content: center; font-size: 38px; }
   .project-thumb.t2 { background: linear-gradient(135deg, #f093fb, #f5576c); }
   .project-thumb.t3 { background: linear-gradient(135deg, #4facfe, #00f2fe); }
   .project-thumb.t4 { background: linear-gradient(135deg, #43e97b, #38f9d7); }
 
-  .project-info { padding: 10px; }
-  .project-name { font-size: 12px; font-weight: bold; color: #000; margin-bottom: 3px; }
-  .project-desc { font-size: 11px; color: #555; }
-  .project-tag { display: inline-block; margin-top: 6px; font-size: 10px; padding: 2px 5px; background: #e0e0e0; color: #333; }
+  .project-info { padding: 12px; }
+  .project-name { font-size: 14px; font-weight: bold; color: #000; margin-bottom: 4px; }
+  .project-desc { font-size: 13px; color: #555; }
+  .project-tag { display: inline-block; margin-top: 8px; font-size: 12px; padding: 3px 6px; background: #e0e0e0; color: #333; }
 
   /* Resume window interior */
-  .resume-content { padding: 20px; font-family: 'Tahoma', sans-serif; color: #000; }
-  .resume-header { border-bottom: 2px solid #0055e5; padding-bottom: 10px; margin-bottom: 15px; }
-  .resume-name { font-size: 24px; font-weight: bold; }
-  .resume-role { font-size: 13px; color: #333; margin-top: 3px; }
+  .resume-content { padding: 24px; font-family: 'Tahoma', sans-serif; color: #000; }
+  .resume-header { border-bottom: 2px solid #0055e5; padding-bottom: 12px; margin-bottom: 18px; }
+  .resume-name { font-size: 28px; font-weight: bold; }
+  .resume-role { font-size: 15px; color: #333; margin-top: 4px; }
   
-  .resume-section { margin-bottom: 15px; }
-  .resume-section-title { font-size: 12px; font-weight: bold; color: #0055e5; background: #ece9d8; padding: 2px 5px; margin-bottom: 8px; border: 1px solid #d0d0d0;}
-  .resume-item { margin-bottom: 10px; }
-  .resume-item-title { font-size: 12px; font-weight: bold; }
-  .resume-item-date { float: right; font-size: 11px; color: #666; }
-  .resume-item-sub { font-size: 11px; color: #444; }
-  .resume-item-desc { font-size: 11px; color: #222; margin-top: 3px; }
+  .resume-section { margin-bottom: 18px; }
+  .resume-section-title { font-size: 14px; font-weight: bold; color: #0055e5; background: #ece9d8; padding: 3px 6px; margin-bottom: 10px; border: 1px solid #d0d0d0;}
+  .resume-item { margin-bottom: 12px; }
+  .resume-item-title { font-size: 14px; font-weight: bold; }
+  .resume-item-date { float: right; font-size: 13px; color: #666; }
+  .resume-item-sub { font-size: 13px; color: #444; }
+  .resume-item-desc { font-size: 13px; color: #222; margin-top: 4px; line-height: 1.4; }
   
-  .skill-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
-  .skill-tag { font-size: 11px; padding: 2px 6px; border: 1px solid #aaa; background: #eee; }
+  .skill-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
+  .skill-tag { font-size: 13px; padding: 3px 8px; border: 1px solid #aaa; background: #eee; }
 
-  /* ── WIDGETS (Disabled on mobile) ── */
+  /* ── WIDGETS (1.2배 확대) ── */
   .widget {
     position: absolute;
     border-radius: 4px;
     overflow: hidden;
-    background: #ffffe1; /* XP tool-tip yellow */
+    background: #ffffe1; 
     border: 1px solid #000;
-    box-shadow: 2px 2px 5px rgba(0,0,0,0.5);
+    box-shadow: 2px 2px 6px rgba(0,0,0,0.5);
     z-index: 50;
     cursor: move;
   }
 
   .widget-titlebar {
-    height: 18px;
-    background: #000080; /* Classic dark blue */
+    height: 22px;
+    background: #000080;
     display: flex;
     align-items: center;
-    padding: 0 4px;
+    padding: 0 6px;
     justify-content: space-between;
   }
-  .widget-title-text { font-size: 10px; color: white; font-weight: bold; }
-  .widget-close { width: 12px; height: 12px; background: #d4d0c8; border: 1px solid white; font-size: 9px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-weight: bold; }
+  .widget-title-text { font-size: 12px; color: white; font-weight: bold; }
+  .widget-close { width: 14px; height: 14px; background: #d4d0c8; border: 1px solid white; font-size: 11px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-weight: bold; }
 
   /* Notes */
-  .notes-body { padding: 8px; min-height: 130px; }
-  .notes-lines { font-size: 12px; font-family: 'Comic Sans MS', cursive; background: transparent; border: none; outline: none; width: 100%; height: 110px; resize: none; color: #000;}
+  .notes-body { padding: 10px; min-height: 150px; }
+  .notes-lines { font-size: 14px; line-height: 1.5; font-family: 'Comic Sans MS', cursive; background: transparent; border: none; outline: none; width: 100%; height: 130px; resize: none; color: #000;}
 
   /* Calendar */
-  .cal-body { background: white; padding: 8px; min-width: 180px; border-top: 1px solid #000; }
-  .cal-header { display: flex; justify-content: space-between; margin-bottom: 5px; color: black; font-weight: bold; font-size: 11px; }
-  .cal-nav { cursor: pointer; padding: 0 5px; }
+  .cal-body { background: white; padding: 10px; min-width: 220px; border-top: 1px solid #000; }
+  .cal-header { display: flex; justify-content: space-between; margin-bottom: 6px; color: black; font-weight: bold; font-size: 13px; }
+  .cal-nav { cursor: pointer; padding: 0 6px; }
   .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; background: #eee; border: 1px solid #ccc; }
-  .cal-day-name { font-size: 10px; text-align: center; background: #d4d0c8; color: black; padding: 2px 0; }
-  .cal-day { font-size: 11px; text-align: center; background: white; padding: 4px 0; cursor: pointer; color: black; }
+  .cal-day-name { font-size: 12px; text-align: center; background: #d4d0c8; color: black; padding: 3px 0; }
+  .cal-day { font-size: 13px; text-align: center; background: white; padding: 5px 0; cursor: pointer; color: black; }
   .cal-day:hover { background: #0055e5; color: white; }
   .cal-day.today { border: 1px solid #e81123; font-weight: bold; }
   .cal-day.empty { background: #f5f5f5; color: transparent; cursor: default; }
 
   /* resize handle */
   .resize-handle {
-    position: absolute; bottom: 0; right: 0; width: 12px; height: 12px; cursor: se-resize;
+    position: absolute; bottom: 0; right: 0; width: 14px; height: 14px; cursor: se-resize;
     background: repeating-linear-gradient(135deg, transparent, transparent 2px, #aaa 2px, #aaa 3px);
   }
 
   /* ── MOBILE RESPONSIVE ── */
   @media (max-width: 768px) {
-    /* Hide widgets entirely on mobile for a cleaner practical view */
     .widget { display: none !important; }
-
-    /* Make windows fill up the screen practically */
     .window {
       width: 94vw !important;
       height: 85vh !important;
@@ -309,26 +271,19 @@
       top: 3vh !important;
       min-width: 0;
     }
-    
-    .works-grid { grid-template-columns: 1fr; } /* single column for works */
-    
-    #taskbar { height: 40px; } /* Slightly taller taskbar for touch */
-    .start-btn { font-size: 16px; padding: 0 20px 0 16px; }
+    .works-grid { grid-template-columns: 1fr; }
+    #taskbar { height: 48px; }
+    .start-btn { font-size: 18px; padding: 0 20px 0 16px; }
   }
 </style>
 </head>
 <body>
 
-<div id="space">
-  <div id="nebula"></div>
-  <canvas id="stars-layer-1"></canvas>
-  <canvas id="stars-layer-2"></canvas>
-  <canvas id="stars-layer-3"></canvas>
-</div>
+<div id="bg-container"></div>
 
 <div id="desktop">
 
-  <div class="icon" style="left:20px; top:20px" id="icon-works" onclick="handleIconClick(this, 'works')">
+  <div class="icon" style="left:24px; top:24px" id="icon-works" onclick="handleIconClick(this, 'works')">
     <div class="icon-img">
       <svg viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg">
         <rect x="4" y="8" width="44" height="34" rx="2" fill="url(#folderGradXP)" />
@@ -353,7 +308,7 @@
     <span class="icon-label">Works</span>
   </div>
 
-  <div class="icon" style="left:20px; top:100px" id="icon-resume" onclick="handleIconClick(this, 'resume')">
+  <div class="icon" style="left:24px; top:120px" id="icon-resume" onclick="handleIconClick(this, 'resume')">
     <div class="icon-img">
       <svg viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg">
         <rect x="10" y="4" width="32" height="44" fill="#ffffff" stroke="#0b61ff" stroke-width="2"/>
@@ -367,10 +322,10 @@
     <span class="icon-label">Resume / CV</span>
   </div>
 
-  <div class="widget" id="widget-notes" style="right:30px; top:40px; width:200px;">
+  <div class="widget" id="widget-notes" style="right:30px; top:40px; width:240px; display:block;">
     <div class="widget-titlebar" id="wt-notes">
       <span class="widget-title-text">Sticky Note</span>
-      <div class="widget-close">x</div>
+      <div class="widget-close" onclick="closeWidget('widget-notes', event)">x</div>
     </div>
     <div class="notes-body">
       <textarea class="notes-lines" spellcheck="false">jihyeon — designer
@@ -382,10 +337,10 @@ healing aesthetics ✦
     </div>
   </div>
 
-  <div class="widget" id="widget-cal" style="right:30px; top:220px;">
+  <div class="widget" id="widget-cal" style="right:30px; top:250px; display:block;">
     <div class="widget-titlebar" id="wt-cal">
       <span class="widget-title-text">Calendar</span>
-      <div class="widget-close">x</div>
+      <div class="widget-close" onclick="closeWidget('widget-cal', event)">x</div>
     </div>
     <div class="cal-body">
       <div class="cal-header">
@@ -397,13 +352,13 @@ healing aesthetics ✦
     </div>
   </div>
 
-  <div class="window" id="window-works" style="left:120px; top:50px; width:500px; height:380px;">
+  <div class="window" id="window-works" style="left:150px; top:60px; width:600px; height:450px;">
     <div class="window-titlebar" id="titlebar-works">
       <span class="window-title">Works</span>
       <div class="xp-controls">
         <div class="xp-btn xp-btn-min">_</div>
         <div class="xp-btn xp-btn-max">□</div>
-        <div class="xp-btn xp-btn-close" onclick="closeWindow('works')">X</div>
+        <div class="xp-btn xp-btn-close" onmousedown="closeWindow('works'); event.stopPropagation();">X</div>
       </div>
     </div>
     <div class="window-body">
@@ -445,13 +400,13 @@ healing aesthetics ✦
     </div>
   </div>
 
-  <div class="window" id="window-resume" style="left:180px; top:90px; width:450px; height:500px;">
+  <div class="window" id="window-resume" style="left:200px; top:100px; width:540px; height:600px;">
     <div class="window-titlebar" id="titlebar-resume">
       <span class="window-title">Resume / CV.doc - Microsoft Word</span>
       <div class="xp-controls">
         <div class="xp-btn xp-btn-min">_</div>
         <div class="xp-btn xp-btn-max">□</div>
-        <div class="xp-btn xp-btn-close" onclick="closeWindow('resume')">X</div>
+        <div class="xp-btn xp-btn-close" onmousedown="closeWindow('resume'); event.stopPropagation();">X</div>
       </div>
     </div>
     <div class="window-body">
@@ -459,12 +414,12 @@ healing aesthetics ✦
         <div class="resume-header">
           <div class="resume-name">Jihyeon</div>
           <div class="resume-role">UI/UX Designer · App Designer</div>
-          <div style="font-size:11px; color:#666; margin-top:5px;">Seoul, Korea → Vancouver, BC &nbsp;|&nbsp; your@email.com</div>
+          <div style="font-size:13px; color:#666; margin-top:6px;">Seoul, Korea → Vancouver, BC &nbsp;|&nbsp; your@email.com</div>
         </div>
 
         <div class="resume-section">
           <div class="resume-section-title">About</div>
-          <div style="font-size:11px; line-height:1.5;">
+          <div style="font-size:13px; line-height:1.6;">
             Designer with a healing-aesthetic sensibility, bridging emotional experience and functional interface design. Passionate about mobile apps, AI-assisted design workflows, and meaningful digital experiences.
           </div>
         </div>
@@ -519,94 +474,41 @@ healing aesthetics ✦
 </div>
 
 <div id="taskbar">
-  <div class="start-btn">
-    <span class="start-logo">⊞</span> start
+  <div class="start-btn" onclick="goHome()">
+    <span class="start-logo">⊞</span> HOME
   </div>
   <div class="taskbar-items">
-    </div>
+  </div>
   <div class="system-tray">
     <span id="clock">12:00 AM</span>
   </div>
 </div>
 
 <script>
-// ── STARS ──
-const layers = [
-  { id: 'stars-layer-1', count: 300, size: [0.5,1.2], depth: 0.02 },
-  { id: 'stars-layer-2', count: 150, size: [1,2],   depth: 0.05 },
-  { id: 'stars-layer-3', count: 60,  size: [1.5,3], depth: 0.08 }
-];
-
-const layerCanvases = [];
-layers.forEach(({ id, count, size }) => {
-  const el = document.getElementById(id);
-  const dpr = window.devicePixelRatio || 1;
-  el.width = window.innerWidth * 1.4 * dpr;
-  el.height = window.innerHeight * 1.4 * dpr;
-  el.style.width = (window.innerWidth * 1.4) + 'px';
-  el.style.height = (window.innerHeight * 1.4) + 'px';
-  const ctx = el.getContext('2d');
-  ctx.scale(dpr, dpr);
-
-  const stars = [];
-  for (let i = 0; i < count; i++) {
-    const x = Math.random() * window.innerWidth * 1.4;
-    const y = Math.random() * window.innerHeight * 1.4;
-    const r = size[0] + Math.random() * (size[1] - size[0]);
-    const brightness = 0.4 + Math.random() * 0.6;
-    const twinkleSpeed = 0.5 + Math.random() * 2;
-    const twinkleOffset = Math.random() * Math.PI * 2;
-    stars.push({ x, y, r, brightness, twinkleSpeed, twinkleOffset });
-  }
-
-  layerCanvases.push({ el, ctx, stars, count, size });
-});
-
-let animTime = 0;
-function drawStars(time) {
-  animTime = time * 0.001;
-  layerCanvases.forEach(({ ctx, stars, el }) => {
-    ctx.clearRect(0, 0, el.width, el.height);
-    stars.forEach(s => {
-      const twinkle = s.brightness * (0.7 + 0.3 * Math.sin(animTime * s.twinkleSpeed + s.twinkleOffset));
-      ctx.beginPath();
-      ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(255,255,255,${twinkle})`;
-      ctx.fill();
-    });
-  });
-  requestAnimationFrame(drawStars);
-}
-requestAnimationFrame(drawStars);
-
-// ── PARALLAX (Movement 2x Increased) ──
-let mouseX = 0, mouseY = 0;
-let currentX = 0, currentY = 0;
-
+// ── BACKGROUND 3D PARALLAX ANIMATION ──
+const bg = document.getElementById('bg-container');
 document.addEventListener('mousemove', (e) => {
-  mouseX = (e.clientX / window.innerWidth - 0.5) * 2;
-  mouseY = (e.clientY / window.innerHeight - 0.5) * 2;
+  // 화면 중앙을 0으로 잡고 마우스 위치에 따라 X, Y값을 구함
+  const x = (e.clientX / window.innerWidth - 0.5) * 40; 
+  const y = (e.clientY / window.innerHeight - 0.5) * 40;
+  // 반대 방향으로 미세하게 이동하고 살짝 기울여 3D 공간감을 줌
+  bg.style.transform = `translate(${-x}px, ${-y}px) rotateX(${y * 0.1}deg) rotateY(${x * 0.1}deg) scale(1.05)`;
 });
 
-function updateParallax() {
-  currentX += (mouseX - currentX) * 0.04;
-  currentY += (mouseY - currentY) * 0.04;
-
-  layers.forEach(({ id, depth }, i) => {
-    const el = document.getElementById(id);
-    // Increased from 150 to 300
-    const tx = -currentX * depth * 300;
-    const ty = -currentY * depth * 300;
-    el.style.transform = `translate(${tx}px, ${ty}px)`;
-  });
-
-  const nebula = document.getElementById('nebula');
-  // Increased from 20 to 40
-  nebula.style.transform = `translate(${-currentX*40}px, ${-currentY*40}px)`;
-
-  requestAnimationFrame(updateParallax);
+// ── HOME BUTTON (Reset to Default State) ──
+function goHome() {
+  // 1. 열려있는 모든 창 닫기
+  document.querySelectorAll('.window').forEach(w => w.classList.remove('visible'));
+  
+  // 2. 위젯 다시 띄우기 (PC에서만)
+  if(window.innerWidth > 768) {
+    document.getElementById('widget-notes').style.display = 'block';
+    document.getElementById('widget-cal').style.display = 'block';
+  }
+  
+  // 3. 바탕화면 아이콘 선택 해제
+  document.querySelectorAll('.icon').forEach(i => i.classList.remove('selected'));
 }
-updateParallax();
 
 // ── CLOCK ──
 function updateClock() {
@@ -621,15 +523,12 @@ setInterval(updateClock, 10000);
 
 // ── CALENDAR ──
 let calDate = new Date();
-
 function renderCalendar() {
   const year = calDate.getFullYear();
   const month = calDate.getMonth();
   const today = new Date();
-
   const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
   document.getElementById('cal-month-label').textContent = `${monthNames[month]} ${year}`;
-
   const grid = document.getElementById('cal-grid');
   grid.innerHTML = '';
 
@@ -645,22 +544,17 @@ function renderCalendar() {
 
   for (let i = 0; i < firstDay; i++) {
     const el = document.createElement('div');
-    el.className = 'cal-day empty';
-    el.textContent = '.';
-    grid.appendChild(el);
+    el.className = 'cal-day empty'; el.textContent = '.'; grid.appendChild(el);
   }
-
   for (let d = 1; d <= daysInMonth; d++) {
     const el = document.createElement('div');
-    el.className = 'cal-day';
-    el.textContent = d;
+    el.className = 'cal-day'; el.textContent = d;
     if (d === today.getDate() && month === today.getMonth() && year === today.getFullYear()) {
       el.classList.add('today');
     }
     grid.appendChild(el);
   }
 }
-
 document.getElementById('cal-prev').addEventListener('click', () => { calDate.setMonth(calDate.getMonth() - 1); renderCalendar(); });
 document.getElementById('cal-next').addEventListener('click', () => { calDate.setMonth(calDate.getMonth() + 1); renderCalendar(); });
 renderCalendar();
@@ -680,6 +574,11 @@ function closeWindow(id) {
   win.classList.remove('visible');
 }
 
+function closeWidget(id, event) {
+  document.getElementById(id).style.display = 'none';
+  if(event) event.stopPropagation();
+}
+
 function bringToFront(win) {
   if (activeWindow && activeWindow !== win) {
     activeWindow.classList.add('inactive');
@@ -697,7 +596,7 @@ function makeDraggable(el, handleId) {
   let isDragging = false, startX, startY, origX, origY;
 
   handle.addEventListener('mousedown', (e) => {
-    if (e.target.closest('.xp-controls')) return;
+    if (e.target.closest('.xp-controls') || e.target.closest('.widget-close')) return;
     isDragging = true;
     startX = e.clientX; startY = e.clientY;
     const rect = el.getBoundingClientRect();
@@ -707,7 +606,7 @@ function makeDraggable(el, handleId) {
   });
   
   handle.addEventListener('touchstart', (e) => {
-    if (e.target.closest('.xp-controls')) return;
+    if (e.target.closest('.xp-controls') || e.target.closest('.widget-close')) return;
     isDragging = true;
     startX = e.touches[0].clientX; startY = e.touches[0].clientY;
     const rect = el.getBoundingClientRect();
@@ -739,29 +638,20 @@ makeDraggable(document.getElementById('window-resume'), 'titlebar-resume');
 makeDraggable(document.getElementById('widget-notes'), 'wt-notes');
 makeDraggable(document.getElementById('widget-cal'), 'wt-cal');
 
-// Close widgets
-document.querySelectorAll('.widget-close').forEach(btn => {
-  btn.addEventListener('click', (e) => {
-    e.target.closest('.widget').style.display = 'none';
-  });
-});
-
 // ── ICON SELECTION & MOBILE TAP HANDLING ──
 let lastClickTime = 0;
 let lastClickedId = '';
 
 function handleIconClick(el, windowId) {
-  // Select style
   document.querySelectorAll('.icon').forEach(i => i.classList.remove('selected'));
   el.classList.add('selected');
   
-  // Mobile: Single tap opens the window. Desktop: Double click opens.
   if (window.innerWidth <= 768) {
     openWindow(windowId);
   } else {
     const currentTime = new Date().getTime();
     if (lastClickedId === windowId && currentTime - lastClickTime < 400) {
-      openWindow(windowId); // Double click triggered
+      openWindow(windowId);
     }
     lastClickTime = currentTime;
     lastClickedId = windowId;
@@ -796,7 +686,6 @@ document.querySelectorAll('.resize-handle').forEach(handle => {
 
   document.addEventListener('mousemove', (e) => doResize(e.clientX, e.clientY));
   document.addEventListener('touchmove', (e) => doResize(e.touches[0].clientX, e.touches[0].clientY), {passive: true});
-
   document.addEventListener('mouseup', () => { isResizing = false; });
   document.addEventListener('touchend', () => { isResizing = false; });
 });
