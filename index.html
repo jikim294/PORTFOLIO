@@ -11,40 +11,24 @@
   body {
     width: 100vw; height: 100vh;
     overflow: hidden;
-    background: #050510;
+    background: #0A0E27; /* 쉐이더 베이스 컬러로 로딩 전 화면 맞춤 */
     cursor: default;
     user-select: none;
   }
 
-  /* ── CSS FLUID GRADIENT BACKGROUND (CodePen Scheme 3 Style) ── */
-  #bg-gradient {
+  /* ── 3D FLUID BACKGROUND CANVAS ── */
+  #webgl-canvas {
     position: fixed;
-    inset: 0;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
     z-index: 0;
-    /* #402ffc 기반 다크모드 유체 그라데이션 */
-    background: linear-gradient(
-      -45deg, 
-      #050510, 
-      #130a38, 
-      #402ffc, 
-      #1a1040, 
-      #291a7a
-    );
-    background-size: 400% 400%;
-    animation: fluidGradient 15s ease infinite;
-  }
-
-  @keyframes fluidGradient {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
   }
 
   /* ── WINDOWS 98 TASKBAR (1.5배 확대) ── */
   #taskbar {
     position: fixed;
     bottom: 0; left: 0; right: 0;
-    height: 54px; /* 36px -> 54px */
+    height: 54px;
     background: #c0c0c0;
     border-top: 3px solid #fff;
     box-shadow: inset 0 3px 0 #dfdfdf;
@@ -61,8 +45,8 @@
     border-color: #fff #808080 #808080 #fff;
     color: black;
     font-weight: bold;
-    font-size: 21px; /* 14px -> 21px */
-    padding: 0 18px; /* 12px -> 18px */
+    font-size: 21px;
+    padding: 0 18px;
     display: flex;
     align-items: center;
     cursor: pointer;
@@ -82,7 +66,7 @@
     padding: 0 18px;
     border: 3px solid;
     border-color: #808080 #fff #fff #808080;
-    font-size: 18px; /* 12px -> 18px */
+    font-size: 18px;
     color: black;
   }
 
@@ -96,7 +80,7 @@
   /* ── DESKTOP ICONS (1.5배 확대) ── */
   .icon {
     position: absolute;
-    width: 120px; /* 80px -> 120px */
+    width: 120px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -105,11 +89,11 @@
     padding: 6px;
   }
   .icon-img {
-    width: 72px; height: 72px; /* 48px -> 72px */
+    width: 72px; height: 72px;
     display: flex; align-items: center; justify-content: center;
   }
   .icon-label {
-    font-size: 18px; /* 12px -> 18px */
+    font-size: 18px;
     color: white;
     text-align: center;
     padding: 2px 6px;
@@ -132,7 +116,7 @@
   .window.active { z-index: 200; }
 
   .window-titlebar {
-    height: 36px; /* 24px -> 36px */
+    height: 36px;
     background: #000080;
     display: flex;
     align-items: center;
@@ -144,7 +128,7 @@
   .window.inactive .window-titlebar { background: #808080; }
 
   .window-title {
-    font-size: 18px; /* 12px -> 18px */
+    font-size: 18px;
     font-weight: bold;
     color: white;
     pointer-events: none;
@@ -154,7 +138,7 @@
 
   .win98-controls { display: flex; gap: 3px; }
   .w-btn {
-    width: 27px; height: 27px; /* 18px -> 27px */
+    width: 27px; height: 27px;
     background: #c0c0c0;
     border: 3px solid;
     border-color: #dfdfdf #808080 #808080 #dfdfdf;
@@ -252,10 +236,18 @@
     .start-btn { font-size: 24px; padding: 0 24px; }
   }
 </style>
+
+<script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.160.0/build/three.module.js"
+    }
+  }
+</script>
 </head>
 <body>
 
-<div id="bg-gradient"></div>
+<canvas id="webgl-canvas"></canvas>
 
 <div id="desktop">
 
@@ -417,6 +409,98 @@ healing aesthetics ✦
   </div>
 </div>
 
+<script type="module">
+  // ── THREE.JS CUSTOM LIQUID GRADIENT SHADER ──
+  // 제공해주신 4가지 HEX 컬러를 부드럽게 믹스하는 유체 쉐이더입니다.
+  import * as THREE from 'three';
+
+  const canvas = document.getElementById('webgl-canvas');
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, alpha: true });
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+  const geometry = new THREE.PlaneGeometry(2, 2);
+
+  const vertexShader = `
+    varying vec2 vUv;
+    void main() {
+      vUv = uv;
+      gl_Position = vec4(position, 1.0);
+    }
+  `;
+
+  const fragmentShader = `
+    uniform float uTime;
+    uniform vec2 uResolution;
+    
+    // 전달받은 4가지 컬러 코드
+    uniform vec3 c1; // #542AFE
+    uniform vec3 c2; // #0A0E27
+    uniform vec3 c3; // #AB2EFF
+    uniform vec3 c4; // #221FFF
+
+    varying vec2 vUv;
+
+    void main() {
+      vec2 p = vUv * 2.0 - 1.0;
+      p.x *= uResolution.x / uResolution.y;
+
+      float t = uTime * 0.4;
+
+      // 유체 흐름을 위한 다중 노이즈/사인파 왜곡
+      vec2 offset = p;
+      offset.x += sin(p.y * 3.0 + t) * 0.4;
+      offset.y += cos(p.x * 2.5 + t * 0.8) * 0.4;
+
+      float n1 = sin(offset.x * 3.0 + t) * cos(offset.y * 3.0 - t);
+      float n2 = sin(offset.x * 2.0 - t * 0.5) * cos(offset.y * 4.0 + t * 0.5);
+
+      // 다크 네이비(#0A0E27) 베이스 위에 컬러들을 섞습니다.
+      vec3 col = mix(c2, c1, smoothstep(-1.0, 1.0, n1));
+      col = mix(col, c4, smoothstep(-0.5, 1.0, n2));
+      col = mix(col, c3, smoothstep(0.2, 1.0, n1 * n2));
+
+      // 화면 가장자리를 살짝 어둡게 (Vignette)
+      float dist = length(vUv - 0.5);
+      col -= dist * 0.3;
+
+      gl_FragColor = vec4(col, 1.0);
+    }
+  `;
+
+  // Hex 코드를 Three.js Color 형식으로 변환하여 Uniform으로 전달
+  const material = new THREE.ShaderMaterial({
+    vertexShader,
+    fragmentShader,
+    uniforms: {
+      uTime: { value: 0 },
+      uResolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
+      c1: { value: new THREE.Color('#542AFE') },
+      c2: { value: new THREE.Color('#0A0E27') },
+      c3: { value: new THREE.Color('#AB2EFF') },
+      c4: { value: new THREE.Color('#221FFF') }
+    }
+  });
+
+  const plane = new THREE.Mesh(geometry, material);
+  scene.add(plane);
+
+  const clock = new THREE.Clock();
+  function animate() {
+    requestAnimationFrame(animate);
+    material.uniforms.uTime.value = clock.getElapsedTime();
+    renderer.render(scene, camera);
+  }
+  animate();
+
+  window.addEventListener('resize', () => {
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    material.uniforms.uResolution.value.set(window.innerWidth, window.innerHeight);
+  });
+</script>
+
 <script>
 // ── UI LOGIC ──
 
@@ -506,7 +590,7 @@ function makeDraggable(el, handleId) {
     const rect = el.getBoundingClientRect();
     origX = rect.left; origY = rect.top;
     
-    // [버그 수정 핵심] 창이 늘어나지 않도록 우측/하단 기준점을 초기화합니다.
+    // 창이 늘어나지 않도록 우측/하단 기준점 초기화
     el.style.right = 'auto';
     el.style.bottom = 'auto';
     el.style.left = origX + 'px';
