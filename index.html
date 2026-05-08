@@ -3,330 +3,333 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>jihyeon — portfolio (XP Edition)</title>
-<link href="https://fonts.googleapis.com/css2?family=Tahoma:wght@400;700&display=swap" rel="stylesheet">
+<title>Jihyeon — macOS Portfolio</title>
+<link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
+  :root {
+    --glass-bg: rgba(30, 30, 35, 0.65);
+    --glass-border: rgba(255, 255, 255, 0.15);
+    --text-primary: rgba(255, 255, 255, 0.95);
+    --text-secondary: rgba(255, 255, 255, 0.6);
+  }
+
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
   body {
-    font-family: 'Tahoma', 'Trebuchet MS', sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     width: 100vw;
     height: 100vh;
     overflow: hidden;
-    background: #000;
+    background: #050505;
+    color: var(--text-primary);
     cursor: default;
     user-select: none;
-    perspective: 1000px; /* 3D 효과를 위한 원근감 설정 */
   }
 
-  /* ── 3D BACKGROUND ── */
-  #bg-container {
+  /* ── 3D BACKGROUND CANVAS ── */
+  #webgl-canvas {
     position: fixed;
-    /* 화면 바깥으로 여백을 주어 움직일 때 테두리가 보이지 않게 함 */
-    top: -10%; left: -10%;
-    width: 120%; height: 120%;
-    background: url('faded_gallery-SiAJGyR15Aw-unsplash.jpg') center/cover no-repeat;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
     z-index: 0;
-    will-change: transform;
-    /* 마우스 움직임에 따른 부드러운 전환 효과 */
-    transition: transform 0.15s ease-out; 
   }
 
-  /* ── WINDOWS XP TASKBAR (1.2배 확대) ── */
-  #taskbar {
+  /* ── MAC MENU BAR ── */
+  #menubar {
     position: fixed;
-    bottom: 0; left: 0; right: 0;
-    height: 42px; /* 30px -> 42px */
-    background: linear-gradient(to bottom, #245edb 0%, #3f8cf3 9%, #245edb 18%, #245edb 92%, #333 100%);
-    border-top: 1px solid #000;
-    display: flex;
-    align-items: center;
-    z-index: 1000;
-  }
-
-  .start-btn {
-    height: 100%;
-    background: linear-gradient(to bottom, #348234 0%, #3a9e3a 10%, #266b26 100%);
-    color: white;
-    font-weight: bold;
-    font-style: italic;
-    font-size: 18px; /* 14px -> 18px */
-    padding: 0 20px 0 16px;
-    display: flex;
-    align-items: center;
-    border-radius: 0 12px 12px 0;
-    box-shadow: 2px 0 4px rgba(0,0,0,0.4), inset 1px 1px 2px rgba(255,255,255,0.4);
-    cursor: pointer;
-  }
-  .start-btn:hover { filter: brightness(1.1); }
-  .start-btn:active { box-shadow: inset 2px 2px 4px rgba(0,0,0,0.5); }
-  .start-logo { margin-right: 8px; font-style: normal; font-size: 20px; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); }
-
-  .taskbar-items {
-    display: flex;
-    flex: 1;
-    padding: 0 12px;
-    gap: 5px;
-  }
-
-  .system-tray {
-    background: linear-gradient(to bottom, #0f8de9 0%, #159cf0 10%, #087cdc 100%);
-    height: 100%;
+    top: 0; left: 0; right: 0;
+    height: 28px;
+    background: rgba(20, 20, 20, 0.4);
+    backdrop-filter: blur(20px) saturate(1.5);
+    -webkit-backdrop-filter: blur(20px) saturate(1.5);
     display: flex;
     align-items: center;
     padding: 0 16px;
-    border-left: 1px solid #1042af;
-    color: white;
-    font-size: 13px; /* 11px -> 13px */
-    box-shadow: inset 1px 0 1px rgba(255,255,255,0.2);
+    gap: 20px;
+    z-index: 1000;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   }
+
+  .menu-left { display: flex; align-items: center; gap: 16px; }
+  .apple-logo { font-size: 16px; margin-bottom: 2px; cursor: pointer; }
+  .menu-item { cursor: pointer; transition: opacity 0.2s; }
+  .menu-item:hover { opacity: 0.7; }
+  .menu-item.bold { font-weight: 600; }
+  .menu-right { margin-left: auto; display: flex; align-items: center; gap: 16px; }
 
   /* ── DESKTOP ── */
   #desktop {
     position: fixed;
-    inset: 0 0 42px 0;
+    inset: 28px 0 80px 0;
     z-index: 10;
   }
 
-  /* ── ICONS (1.2배 확대) ── */
+  /* ── DESKTOP ICONS ── */
   .icon {
     position: absolute;
-    width: 90px; /* 76px -> 90px */
+    width: 80px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
     cursor: pointer;
-    padding: 6px;
-    border-radius: 3px;
+    padding: 8px;
+    border-radius: 6px;
+    transition: background 0.2s;
   }
+  .icon:hover { background: rgba(255, 255, 255, 0.1); }
   .icon-img {
-    width: 58px; /* 48px -> 58px */
-    height: 58px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    width: 60px; height: 60px;
+    display: flex; align-items: center; justify-content: center;
+    filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));
   }
-
   .icon-label {
-    font-size: 13px; /* 11px -> 13px */
+    font-size: 13px;
     color: white;
     text-align: center;
-    text-shadow: 1px 1px 2px black;
-    line-height: 1.3;
-    word-break: break-word;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+    font-weight: 500;
   }
+  .icon.selected { background: rgba(255, 255, 255, 0.15); }
+  .icon.selected .icon-label { background: #0066cc; border-radius: 4px; padding: 2px 6px; }
 
-  .icon.selected .icon-img { filter: opacity(0.7) brightness(0.8) drop-shadow(0 0 4px blue); }
-  .icon.selected .icon-label { background: #0b61ff; color: white; padding: 2px 4px; }
-
-  /* ── WINDOW (XP LUNA THEME - 1.2배 확대) ── */
+  /* ── MAC WINDOWS ── */
   .window {
     position: absolute;
-    border-radius: 8px 8px 3px 3px;
-    background: #ece9d8;
-    border: 3px solid #0055e5;
-    box-shadow: 3px 3px 12px rgba(0,0,0,0.5);
+    border-radius: 12px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(30px) saturate(1.2);
+    -webkit-backdrop-filter: blur(30px) saturate(1.2);
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1);
     z-index: 100;
-    display: none; /* 디폴트: 숨김 */
+    display: none;
     flex-direction: column;
+    overflow: hidden;
   }
   .window.visible { display: flex; }
-  .window.active { z-index: 200; }
+  .window.active { z-index: 200; box-shadow: 0 30px 60px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.2); }
 
   .window-titlebar {
-    height: 34px; /* 28px -> 34px */
-    background: linear-gradient(to bottom, #0058e6 0%, #3a93ff 20%, #288eff 40%, #116df6 100%);
+    height: 48px;
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    padding: 0 6px 0 8px;
+    padding: 0 16px;
     cursor: move;
-  }
-
-  .window.inactive .window-titlebar { background: linear-gradient(to bottom, #7ba2e7 0%, #8db3f8 20%, #7da2eb 40%, #688fdf 100%); }
-  .window.inactive { border-color: #7ba2e7; }
-
-  .window-title {
-    font-size: 15px; /* 13px -> 15px */
-    font-weight: bold;
-    color: white;
-    pointer-events: none;
-    text-shadow: 1px 1px 2px #0f1089;
-  }
-
-  /* XP window controls */
-  .xp-controls { display: flex; gap: 3px; }
-  .xp-btn {
-    width: 25px; height: 25px; /* 21px -> 25px */
-    border: 1px solid white;
-    border-radius: 3px;
-    display: flex; align-items: center; justify-content: center;
-    color: white; font-size: 16px; font-weight: bold;
-    cursor: pointer; box-shadow: inset 0 1px 2px rgba(255,255,255,0.6), 1px 1px 2px rgba(0,0,0,0.3);
-  }
-  .xp-btn-min, .xp-btn-max { background: linear-gradient(to bottom, #4c8cf5, #2b61d6); line-height: 12px; }
-  .xp-btn-close { background: linear-gradient(to bottom, #e8645a, #d82b1e); font-size: 13px; font-family: sans-serif; }
-  .xp-btn:active { box-shadow: inset 1px 1px 3px rgba(0,0,0,0.5); padding-top: 1px; padding-left: 1px; }
-
-  .window-body {
-    flex: 1;
-    background: #ffffff;
-    border: 1px solid #7f9db9;
-    margin: 2px;
-    overflow-y: auto;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     position: relative;
   }
 
-  /* Works window interior */
-  .works-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
-    padding: 20px;
-    background: #ffffff;
+  .traffic-lights { display: flex; gap: 8px; z-index: 2; }
+  .tl { width: 12px; height: 12px; border-radius: 50%; cursor: pointer; transition: filter 0.2s; }
+  .tl:hover { filter: brightness(0.8); }
+  .tl-close { background: #ff5f56; border: 0.5px solid #e0443e; }
+  .tl-min { background: #ffbd2e; border: 0.5px solid #dea123; }
+  .tl-max { background: #27c93f; border: 0.5px solid #1aab29; }
+
+  .window-title {
+    position: absolute;
+    left: 0; right: 0;
+    text-align: center;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    pointer-events: none;
   }
 
-  .project-card { border: 1px solid #d0d0d0; cursor: pointer; background: #f8f8f8; }
-  .project-card:hover { border-color: #0b61ff; background: #eff4ff; }
+  .window-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    color: var(--text-primary);
+  }
 
-  .project-thumb { height: 120px; background: linear-gradient(135deg, #667eea, #764ba2); display: flex; align-items: center; justify-content: center; font-size: 38px; }
+  /* Scrollbar & Resize Handle 복구 */
+  ::-webkit-scrollbar { width: 8px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
+  
+  .resize-handle {
+    position: absolute; bottom: 2px; right: 2px; width: 16px; height: 16px; cursor: se-resize;
+    background: radial-gradient(circle at 60% 60%, rgba(255,255,255,0.3) 1px, transparent 1px);
+    background-size: 4px 4px; z-index: 10;
+  }
+
+  /* Works Grid */
+  .works-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .project-card {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.2s, background 0.2s;
+  }
+  .project-card:hover { transform: translateY(-4px); background: rgba(255, 255, 255, 0.1); }
+  .project-thumb { height: 120px; display: flex; align-items: center; justify-content: center; font-size: 40px; background: linear-gradient(135deg, #667eea, #764ba2); }
   .project-thumb.t2 { background: linear-gradient(135deg, #f093fb, #f5576c); }
   .project-thumb.t3 { background: linear-gradient(135deg, #4facfe, #00f2fe); }
   .project-thumb.t4 { background: linear-gradient(135deg, #43e97b, #38f9d7); }
+  .project-info { padding: 16px; }
+  .project-name { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+  .project-desc { font-size: 13px; color: var(--text-secondary); line-height: 1.4; }
 
-  .project-info { padding: 12px; }
-  .project-name { font-size: 14px; font-weight: bold; color: #000; margin-bottom: 4px; }
-  .project-desc { font-size: 13px; color: #555; }
-  .project-tag { display: inline-block; margin-top: 8px; font-size: 12px; padding: 3px 6px; background: #e0e0e0; color: #333; }
+  /* Resume Content */
+  .resume-header { border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 20px; margin-bottom: 20px; text-align: center; }
+  .resume-name { font-size: 32px; font-weight: 600; margin-bottom: 4px; letter-spacing: -0.5px; }
+  .resume-role { font-size: 15px; color: var(--text-secondary); }
+  .resume-section { margin-bottom: 24px; }
+  .resume-section-title { font-size: 13px; font-weight: 600; color: #0a84ff; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
+  .resume-item { margin-bottom: 16px; }
+  .resume-item-title { font-size: 15px; font-weight: 600; }
+  .resume-item-date { float: right; font-size: 13px; color: var(--text-secondary); }
+  .resume-item-sub { font-size: 14px; color: rgba(255,255,255,0.8); margin-top: 4px; }
+  .resume-item-desc { font-size: 13px; color: var(--text-secondary); margin-top: 6px; line-height: 1.5; }
+  .skill-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+  .skill-tag { font-size: 12px; padding: 4px 10px; background: rgba(255,255,255,0.1); border-radius: 12px; }
 
-  /* Resume window interior */
-  .resume-content { padding: 24px; font-family: 'Tahoma', sans-serif; color: #000; }
-  .resume-header { border-bottom: 2px solid #0055e5; padding-bottom: 12px; margin-bottom: 18px; }
-  .resume-name { font-size: 28px; font-weight: bold; }
-  .resume-role { font-size: 15px; color: #333; margin-top: 4px; }
-  
-  .resume-section { margin-bottom: 18px; }
-  .resume-section-title { font-size: 14px; font-weight: bold; color: #0055e5; background: #ece9d8; padding: 3px 6px; margin-bottom: 10px; border: 1px solid #d0d0d0;}
-  .resume-item { margin-bottom: 12px; }
-  .resume-item-title { font-size: 14px; font-weight: bold; }
-  .resume-item-date { float: right; font-size: 13px; color: #666; }
-  .resume-item-sub { font-size: 13px; color: #444; }
-  .resume-item-desc { font-size: 13px; color: #222; margin-top: 4px; line-height: 1.4; }
-  
-  .skill-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
-  .skill-tag { font-size: 13px; padding: 3px 8px; border: 1px solid #aaa; background: #eee; }
-
-  /* ── WIDGETS (1.2배 확대) ── */
+  /* ── MAC WIDGETS ── */
   .widget {
     position: absolute;
-    border-radius: 4px;
-    overflow: hidden;
-    background: #ffffe1; 
-    border: 1px solid #000;
-    box-shadow: 2px 2px 6px rgba(0,0,0,0.5);
+    border-radius: 16px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
     z-index: 50;
     cursor: move;
   }
+  .widget-close-btn { position: absolute; top: 12px; left: 12px; color: var(--text-secondary); cursor: pointer; font-size: 12px; display: none; z-index: 10; }
+  .widget:hover .widget-close-btn { display: block; }
+  
+  .notes-body { padding: 20px; }
+  .notes-lines { font-size: 15px; line-height: 1.6; font-family: "SF Pro Display", sans-serif; background: transparent; border: none; outline: none; width: 200px; height: 160px; resize: none; color: white;}
 
-  .widget-titlebar {
-    height: 22px;
-    background: #000080;
+  .cal-body { padding: 16px; width: 240px; }
+  .cal-header { display: flex; justify-content: space-between; margin-bottom: 12px; font-weight: 600; font-size: 15px; }
+  .cal-nav { cursor: pointer; color: var(--text-secondary); transition: color 0.2s; }
+  .cal-nav:hover { color: white; }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+  .cal-day-name { font-size: 12px; text-align: center; color: var(--text-secondary); padding-bottom: 8px; }
+  .cal-day { font-size: 13px; text-align: center; padding: 6px 0; cursor: pointer; border-radius: 50%; transition: background 0.2s; }
+  .cal-day:hover { background: rgba(255,255,255,0.1); }
+  .cal-day.today { background: #ff3b30; color: white; font-weight: 600; }
+  .cal-day.empty { color: transparent; cursor: default; }
+
+  /* ── MAC DOCK ── */
+  #dock-container {
+    position: fixed;
+    bottom: 12px; left: 0; right: 0;
+    display: flex; justify-content: center;
+    z-index: 1000;
+  }
+  #dock {
+    background: rgba(30, 30, 30, 0.4);
+    backdrop-filter: blur(20px) saturate(1.5);
+    -webkit-backdrop-filter: blur(20px) saturate(1.5);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 8px 12px;
+    border-radius: 24px;
     display: flex;
-    align-items: center;
-    padding: 0 6px;
-    justify-content: space-between;
+    gap: 12px;
+    align-items: flex-end;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
   }
-  .widget-title-text { font-size: 12px; color: white; font-weight: bold; }
-  .widget-close { width: 14px; height: 14px; background: #d4d0c8; border: 1px solid white; font-size: 11px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-weight: bold; }
-
-  /* Notes */
-  .notes-body { padding: 10px; min-height: 150px; }
-  .notes-lines { font-size: 14px; line-height: 1.5; font-family: 'Comic Sans MS', cursive; background: transparent; border: none; outline: none; width: 100%; height: 130px; resize: none; color: #000;}
-
-  /* Calendar */
-  .cal-body { background: white; padding: 10px; min-width: 220px; border-top: 1px solid #000; }
-  .cal-header { display: flex; justify-content: space-between; margin-bottom: 6px; color: black; font-weight: bold; font-size: 13px; }
-  .cal-nav { cursor: pointer; padding: 0 6px; }
-  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; background: #eee; border: 1px solid #ccc; }
-  .cal-day-name { font-size: 12px; text-align: center; background: #d4d0c8; color: black; padding: 3px 0; }
-  .cal-day { font-size: 13px; text-align: center; background: white; padding: 5px 0; cursor: pointer; color: black; }
-  .cal-day:hover { background: #0055e5; color: white; }
-  .cal-day.today { border: 1px solid #e81123; font-weight: bold; }
-  .cal-day.empty { background: #f5f5f5; color: transparent; cursor: default; }
-
-  /* resize handle */
-  .resize-handle {
-    position: absolute; bottom: 0; right: 0; width: 14px; height: 14px; cursor: se-resize;
-    background: repeating-linear-gradient(135deg, transparent, transparent 2px, #aaa 2px, #aaa 3px);
+  .dock-icon-wrap {
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    cursor: pointer; position: relative;
   }
+  .dock-icon {
+    width: 50px; height: 50px;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px;
+    transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1), margin 0.2s;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  }
+  .dock-icon-wrap:hover .dock-icon { transform: scale(1.3) translateY(-10px); }
+  .dock-dot { width: 4px; height: 4px; border-radius: 50%; background: rgba(255,255,255,0.8); opacity: 0; transition: opacity 0.2s; }
+  .dock-icon-wrap.active .dock-dot { opacity: 1; }
+  
+  .dock-tooltip {
+    position: absolute; top: -40px;
+    background: rgba(0,0,0,0.6); backdrop-filter: blur(10px);
+    color: white; font-size: 12px; padding: 4px 10px; border-radius: 6px;
+    opacity: 0; pointer-events: none; transition: opacity 0.2s; white-space: nowrap;
+  }
+  .dock-icon-wrap:hover .dock-tooltip { opacity: 1; }
 
   /* ── MOBILE RESPONSIVE ── */
   @media (max-width: 768px) {
     .widget { display: none !important; }
-    .window {
-      width: 94vw !important;
-      height: 85vh !important;
-      left: 3vw !important;
-      top: 3vh !important;
-      min-width: 0;
-    }
+    .window { width: 94vw !important; height: 85vh !important; left: 3vw !important; top: 5vh !important; }
     .works-grid { grid-template-columns: 1fr; }
-    #taskbar { height: 48px; }
-    .start-btn { font-size: 18px; padding: 0 20px 0 16px; }
+    #dock-container { bottom: 8px; }
+    .dock-icon { width: 40px; height: 40px; font-size: 20px; }
   }
 </style>
+
+<script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+    }
+  }
+</script>
 </head>
 <body>
 
-<div id="bg-container"></div>
+<canvas id="webgl-canvas"></canvas>
+
+<div id="menubar">
+  <div class="menu-left">
+    <span class="apple-logo"></span>
+    <span class="menu-item bold">Jihyeon</span>
+    <span class="menu-item">File</span>
+    <span class="menu-item">Edit</span>
+    <span class="menu-item">View</span>
+    <span class="menu-item">Window</span>
+    <span class="menu-item">Help</span>
+  </div>
+  <div class="menu-right">
+    <span class="menu-item">Wi-Fi</span>
+    <span class="menu-item">100%</span>
+    <span id="clock" class="menu-item">Fri May 8  10:58 AM</span>
+  </div>
+</div>
 
 <div id="desktop">
 
-  <div class="icon" style="left:24px; top:24px" id="icon-works" onclick="handleIconClick(this, 'works')">
+  <div class="icon" style="left:30px; top:30px" onclick="handleIconClick(this, 'works')">
     <div class="icon-img">
-      <svg viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <rect x="4" y="8" width="44" height="34" rx="2" fill="url(#folderGradXP)" />
-        <rect x="4" y="14" width="44" height="28" rx="2" fill="url(#folderBodyXP)" />
-        <rect x="4" y="8" width="22" height="8" rx="2" fill="url(#tabGradXP)" />
-        <defs>
-          <linearGradient id="folderGradXP" x1="26" y1="8" x2="26" y2="42" gradientUnits="userSpaceOnUse">
-            <stop offset="0%" stop-color="#ffdd75"/>
-            <stop offset="100%" stop-color="#e5a910"/>
-          </linearGradient>
-          <linearGradient id="folderBodyXP" x1="26" y1="14" x2="26" y2="42" gradientUnits="userSpaceOnUse">
-            <stop offset="0%" stop-color="#ffe999"/>
-            <stop offset="100%" stop-color="#f5c225"/>
-          </linearGradient>
-          <linearGradient id="tabGradXP" x1="14" y1="8" x2="14" y2="16" gradientUnits="userSpaceOnUse">
-            <stop offset="0%" stop-color="#ffcc40"/>
-            <stop offset="100%" stop-color="#db9c00"/>
-          </linearGradient>
-        </defs>
+      <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M10 25 C10 20, 15 15, 20 15 L40 15 L50 25 L80 25 C85 25, 90 30, 90 35 L90 80 C90 85, 85 90, 80 90 L20 90 C15 90, 10 85, 10 80 Z" fill="#0A84FF" fill-opacity="0.8"/>
+        <path d="M10 35 C10 30, 15 25, 20 25 L80 25 C85 25, 90 30, 90 35 L90 80 C90 85, 85 90, 80 90 L20 90 C15 90, 10 85, 10 80 Z" fill="#3E99FF"/>
       </svg>
     </div>
     <span class="icon-label">Works</span>
   </div>
 
-  <div class="icon" style="left:24px; top:120px" id="icon-resume" onclick="handleIconClick(this, 'resume')">
+  <div class="icon" style="left:30px; top:140px" onclick="handleIconClick(this, 'resume')">
     <div class="icon-img">
-      <svg viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <rect x="10" y="4" width="32" height="44" fill="#ffffff" stroke="#0b61ff" stroke-width="2"/>
-        <rect x="16" y="12" width="20" height="2" fill="#000000"/>
-        <rect x="16" y="18" width="16" height="2" fill="#000000"/>
-        <rect x="16" y="24" width="20" height="2" fill="#000000"/>
-        <rect x="16" y="30" width="14" height="2" fill="#000000"/>
-        <path d="M30 4 L42 16 L30 16 Z" fill="#0b61ff"/>
+      <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M10 25 C10 20, 15 15, 20 15 L40 15 L50 25 L80 25 C85 25, 90 30, 90 35 L90 80 C90 85, 85 90, 80 90 L20 90 C15 90, 10 85, 10 80 Z" fill="#0A84FF" fill-opacity="0.8"/>
+        <path d="M10 35 C10 30, 15 25, 20 25 L80 25 C85 25, 90 30, 90 35 L90 80 C90 85, 85 90, 80 90 L20 90 C15 90, 10 85, 10 80 Z" fill="#3E99FF"/>
+        <rect x="35" y="45" width="30" height="4" rx="2" fill="white" opacity="0.8"/>
+        <rect x="35" y="55" width="20" height="4" rx="2" fill="white" opacity="0.8"/>
+        <rect x="35" y="65" width="25" height="4" rx="2" fill="white" opacity="0.8"/>
       </svg>
     </div>
     <span class="icon-label">Resume / CV</span>
   </div>
 
-  <div class="widget" id="widget-notes" style="right:30px; top:40px; width:240px; display:block;">
-    <div class="widget-titlebar" id="wt-notes">
-      <span class="widget-title-text">Sticky Note</span>
-      <div class="widget-close" onclick="closeWidget('widget-notes', event)">x</div>
-    </div>
+  <div class="widget" id="widget-notes" style="right:40px; top:40px; display:block;">
+    <div class="widget-close-btn" onclick="closeWidget('widget-notes', event)">✕</div>
     <div class="notes-body">
       <textarea class="notes-lines" spellcheck="false">jihyeon — designer
 based in Seoul → Vancouver ✈
@@ -337,11 +340,8 @@ healing aesthetics ✦
     </div>
   </div>
 
-  <div class="widget" id="widget-cal" style="right:30px; top:250px; display:block;">
-    <div class="widget-titlebar" id="wt-cal">
-      <span class="widget-title-text">Calendar</span>
-      <div class="widget-close" onclick="closeWidget('widget-cal', event)">x</div>
-    </div>
+  <div class="widget" id="widget-cal" style="right:40px; top:280px; display:block;">
+    <div class="widget-close-btn" onclick="closeWidget('widget-cal', event)">✕</div>
     <div class="cal-body">
       <div class="cal-header">
         <span class="cal-nav" id="cal-prev">‹</span>
@@ -352,14 +352,14 @@ healing aesthetics ✦
     </div>
   </div>
 
-  <div class="window" id="window-works" style="left:150px; top:60px; width:600px; height:450px;">
+  <div class="window" id="window-works" style="left:180px; top:80px; width:640px; height:480px;">
     <div class="window-titlebar" id="titlebar-works">
-      <span class="window-title">Works</span>
-      <div class="xp-controls">
-        <div class="xp-btn xp-btn-min">_</div>
-        <div class="xp-btn xp-btn-max">□</div>
-        <div class="xp-btn xp-btn-close" onmousedown="closeWindow('works'); event.stopPropagation();">X</div>
+      <div class="traffic-lights">
+        <div class="tl tl-close" onmousedown="closeWindow('works'); event.stopPropagation();"></div>
+        <div class="tl tl-min"></div>
+        <div class="tl tl-max"></div>
       </div>
+      <span class="window-title">Works</span>
     </div>
     <div class="window-body">
       <div class="works-grid">
@@ -368,7 +368,6 @@ healing aesthetics ✦
           <div class="project-info">
             <div class="project-name">Mood Diary App</div>
             <div class="project-desc">Music-based healing journal with generative aesthetics</div>
-            <span class="project-tag">UX · Mobile</span>
           </div>
         </div>
         <div class="project-card">
@@ -376,7 +375,6 @@ healing aesthetics ✦
           <div class="project-info">
             <div class="project-name">Wellbeing Dashboard</div>
             <div class="project-desc">Daily check-in system with minimal visual language</div>
-            <span class="project-tag">Product · UI</span>
           </div>
         </div>
         <div class="project-card">
@@ -384,7 +382,6 @@ healing aesthetics ✦
           <div class="project-info">
             <div class="project-name">Portfolio v1</div>
             <div class="project-desc">Interactive web portfolio with cosmic theme</div>
-            <span class="project-tag">Web · Motion</span>
           </div>
         </div>
         <div class="project-card">
@@ -392,136 +389,224 @@ healing aesthetics ✦
           <div class="project-info">
             <div class="project-name">Design System</div>
             <div class="project-desc">Component library with Figma + code handoff</div>
-            <span class="project-tag">Systems</span>
           </div>
         </div>
       </div>
-      <div class="resize-handle"></div>
     </div>
+    <div class="resize-handle"></div>
   </div>
 
-  <div class="window" id="window-resume" style="left:200px; top:100px; width:540px; height:600px;">
+  <div class="window" id="window-resume" style="left:240px; top:120px; width:580px; height:600px;">
     <div class="window-titlebar" id="titlebar-resume">
-      <span class="window-title">Resume / CV.doc - Microsoft Word</span>
-      <div class="xp-controls">
-        <div class="xp-btn xp-btn-min">_</div>
-        <div class="xp-btn xp-btn-max">□</div>
-        <div class="xp-btn xp-btn-close" onmousedown="closeWindow('resume'); event.stopPropagation();">X</div>
+      <div class="traffic-lights">
+        <div class="tl tl-close" onmousedown="closeWindow('resume'); event.stopPropagation();"></div>
+        <div class="tl tl-min"></div>
+        <div class="tl tl-max"></div>
       </div>
+      <span class="window-title">Resume.pdf</span>
     </div>
     <div class="window-body">
-      <div class="resume-content">
-        <div class="resume-header">
-          <div class="resume-name">Jihyeon</div>
-          <div class="resume-role">UI/UX Designer · App Designer</div>
-          <div style="font-size:13px; color:#666; margin-top:6px;">Seoul, Korea → Vancouver, BC &nbsp;|&nbsp; your@email.com</div>
-        </div>
+      <div class="resume-header">
+        <div class="resume-name">Jihyeon</div>
+        <div class="resume-role">UI/UX Designer · App Designer</div>
+        <div style="font-size:14px; color:var(--text-secondary); margin-top:8px;">Seoul, Korea → Vancouver, BC &nbsp;|&nbsp; your@email.com</div>
+      </div>
 
-        <div class="resume-section">
-          <div class="resume-section-title">About</div>
-          <div style="font-size:13px; line-height:1.6;">
-            Designer with a healing-aesthetic sensibility, bridging emotional experience and functional interface design. Passionate about mobile apps, AI-assisted design workflows, and meaningful digital experiences.
-          </div>
-        </div>
-
-        <div class="resume-section">
-          <div class="resume-section-title">Experience</div>
-          <div class="resume-item">
-            <div>
-              <span class="resume-item-title">UI/UX Designer</span>
-              <span class="resume-item-date">2022 — Present</span>
-            </div>
-            <div class="resume-item-sub">Company Name · Seoul</div>
-            <div class="resume-item-desc">Product design for mobile apps, design system building, Figma-to-code workflow.</div>
-          </div>
-          <div class="resume-item">
-            <div>
-              <span class="resume-item-title">Visual Designer</span>
-              <span class="resume-item-date">2020 — 2022</span>
-            </div>
-            <div class="resume-item-sub">Studio Name · Seoul</div>
-            <div class="resume-item-desc">Brand identity, illustration, digital publication design.</div>
-          </div>
-        </div>
-
-        <div class="resume-section">
-          <div class="resume-section-title">Skills</div>
-          <div class="skill-tags">
-            <span class="skill-tag">Figma</span>
-            <span class="skill-tag">Framer</span>
-            <span class="skill-tag">iOS Design</span>
-            <span class="skill-tag">Design Systems</span>
-            <span class="skill-tag">HTML/CSS</span>
-            <span class="skill-tag">Prototyping</span>
-          </div>
-        </div>
-
-        <div class="resume-section">
-          <div class="resume-section-title">Education</div>
-          <div class="resume-item">
-            <div>
-              <span class="resume-item-title">Visual Communication Design</span>
-              <span class="resume-item-date">2016 — 2020</span>
-            </div>
-            <div class="resume-item-sub">University Name</div>
-          </div>
+      <div class="resume-section">
+        <div class="resume-section-title">About</div>
+        <div style="font-size:14px; line-height:1.6; color:var(--text-primary);">
+          Designer with a healing-aesthetic sensibility, bridging emotional experience and functional interface design. Passionate about mobile apps, AI-assisted design workflows, and meaningful digital experiences.
         </div>
       </div>
-      <div class="resize-handle"></div>
+
+      <div class="resume-section">
+        <div class="resume-section-title">Experience</div>
+        <div class="resume-item">
+          <div>
+            <span class="resume-item-title">UI/UX Designer</span>
+            <span class="resume-item-date">2022 — Present</span>
+          </div>
+          <div class="resume-item-sub">Company Name · Seoul</div>
+          <div class="resume-item-desc">Product design for mobile apps, design system building, Figma-to-code workflow.</div>
+        </div>
+        <div class="resume-item">
+          <div>
+            <span class="resume-item-title">Visual Designer</span>
+            <span class="resume-item-date">2020 — 2022</span>
+          </div>
+          <div class="resume-item-sub">Studio Name · Seoul</div>
+          <div class="resume-item-desc">Brand identity, illustration, digital publication design.</div>
+        </div>
+      </div>
+
+      <div class="resume-section">
+        <div class="resume-section-title">Skills</div>
+        <div class="skill-tags">
+          <span class="skill-tag">Figma</span>
+          <span class="skill-tag">Framer</span>
+          <span class="skill-tag">iOS Design</span>
+          <span class="skill-tag">Design Systems</span>
+          <span class="skill-tag">HTML/CSS</span>
+          <span class="skill-tag">Prototyping</span>
+        </div>
+      </div>
+    </div>
+    <div class="resize-handle"></div>
+  </div>
+
+</div>
+
+<div id="dock-container">
+  <div id="dock">
+    <div class="dock-icon-wrap" onclick="goHome()">
+      <div class="dock-tooltip">Home / Desktop</div>
+      <div class="dock-icon" style="background: linear-gradient(180deg, #F9F9F9 0%, #D1D1D1 100%);">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+          <polyline points="9 22 9 12 15 12 15 22"></polyline>
+        </svg>
+      </div>
+      <div class="dock-dot"></div>
+    </div>
+    
+    <div class="dock-icon-wrap" onclick="openWindow('works')" id="dock-works">
+      <div class="dock-tooltip">Works</div>
+      <div class="dock-icon" style="background: linear-gradient(135deg, #0A84FF 0%, #0055B3 100%); color:white;">
+        ✦
+      </div>
+      <div class="dock-dot"></div>
+    </div>
+
+    <div class="dock-icon-wrap" onclick="openWindow('resume')" id="dock-resume">
+      <div class="dock-tooltip">Resume</div>
+      <div class="dock-icon" style="background: linear-gradient(135deg, #FF9500 0%, #D97B00 100%); color:white;">
+        📄
+      </div>
+      <div class="dock-dot"></div>
     </div>
   </div>
-
 </div>
 
-<div id="taskbar">
-  <div class="start-btn" onclick="goHome()">
-    <span class="start-logo">⊞</span> HOME
-  </div>
-  <div class="taskbar-items">
-  </div>
-  <div class="system-tray">
-    <span id="clock">12:00 AM</span>
-  </div>
-</div>
+<script type="module">
+  // ── THREE.JS HOLOGRAPHIC BREATHING SPHERE ──
+  import * as THREE from 'three';
+  import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+  import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+  import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+
+  const canvas = document.getElementById('webgl-canvas');
+  const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
+  camera.position.z = 8;
+
+  const vertexShader = `
+    uniform float uTime;
+    varying vec3 vPosition;
+    void main() {
+      vPosition = position;
+      vec3 pos = position;
+      float noise = sin(pos.x * 2.0 + uTime) * sin(pos.y * 2.0 + uTime) * sin(pos.z * 2.0 + uTime);
+      pos += normal * noise * 0.15; 
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
+    }
+  `;
+
+  const fragmentShader = `
+    uniform float uTime;
+    varying vec3 vPosition;
+    void main() {
+      vec3 color = vec3(
+        0.5 + 0.5 * sin(vPosition.x * 3.0 + uTime),
+        0.5 + 0.5 * sin(vPosition.y * 3.0 + uTime + 2.0),
+        0.5 + 0.5 * sin(vPosition.z * 3.0 + uTime + 4.0)
+      );
+      gl_FragColor = vec4(color, 1.0);
+    }
+  `;
+
+  const geometry = new THREE.IcosahedronGeometry(2.5, 12); 
+  const material = new THREE.ShaderMaterial({
+    vertexShader,
+    fragmentShader,
+    uniforms: { uTime: { value: 0 } },
+    wireframe: true, 
+    transparent: true,
+    blending: THREE.AdditiveBlending
+  });
+
+  const sphere = new THREE.Mesh(geometry, material);
+  scene.add(sphere);
+
+  const composer = new EffectComposer(renderer);
+  const renderPass = new RenderPass(scene, camera);
+  composer.addPass(renderPass);
+  
+  const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
+  bloomPass.threshold = 0;
+  bloomPass.strength = 1.2;
+  bloomPass.radius = 0.5;
+  composer.addPass(bloomPass);
+
+  let mouseX = 0;
+  let mouseY = 0;
+  document.addEventListener('mousemove', (event) => {
+    mouseX = (event.clientX / window.innerWidth) * 2 - 1;
+    mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
+  });
+
+  const clock = new THREE.Clock();
+  function animate() {
+    requestAnimationFrame(animate);
+    const elapsedTime = clock.getElapsedTime();
+    material.uniforms.uTime.value = elapsedTime * 0.5;
+    
+    sphere.rotation.y += 0.002 + (mouseX * 0.01);
+    sphere.rotation.x += 0.002 + (mouseY * 0.01);
+
+    composer.render();
+  }
+  animate();
+
+  window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    composer.setSize(window.innerWidth, window.innerHeight);
+  });
+</script>
 
 <script>
-// ── BACKGROUND 3D PARALLAX ANIMATION ──
-const bg = document.getElementById('bg-container');
-document.addEventListener('mousemove', (e) => {
-  // 화면 중앙을 0으로 잡고 마우스 위치에 따라 X, Y값을 구함
-  const x = (e.clientX / window.innerWidth - 0.5) * 40; 
-  const y = (e.clientY / window.innerHeight - 0.5) * 40;
-  // 반대 방향으로 미세하게 이동하고 살짝 기울여 3D 공간감을 줌
-  bg.style.transform = `translate(${-x}px, ${-y}px) rotateX(${y * 0.1}deg) rotateY(${x * 0.1}deg) scale(1.05)`;
-});
+// ── UI LOGIC ──
 
-// ── HOME BUTTON (Reset to Default State) ──
-function goHome() {
-  // 1. 열려있는 모든 창 닫기
+// HOME Button Logic
+window.goHome = function() {
   document.querySelectorAll('.window').forEach(w => w.classList.remove('visible'));
-  
-  // 2. 위젯 다시 띄우기 (PC에서만)
   if(window.innerWidth > 768) {
     document.getElementById('widget-notes').style.display = 'block';
     document.getElementById('widget-cal').style.display = 'block';
   }
-  
-  // 3. 바탕화면 아이콘 선택 해제
   document.querySelectorAll('.icon').forEach(i => i.classList.remove('selected'));
-}
+  document.querySelectorAll('.dock-icon-wrap').forEach(i => i.classList.remove('active'));
+};
 
-// ── CLOCK ──
+// Clock Logic
 function updateClock() {
   const now = new Date();
+  const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   let h = now.getHours(), m = now.getMinutes();
   const ampm = h >= 12 ? 'PM' : 'AM';
   h = h % 12 || 12;
-  document.getElementById('clock').textContent = `${h}:${String(m).padStart(2,'0')} ${ampm}`;
+  document.getElementById('clock').textContent = `${days[now.getDay()]} ${months[now.getMonth()]} ${now.getDate()}  ${h}:${String(m).padStart(2,'0')} ${ampm}`;
 }
 updateClock();
 setInterval(updateClock, 10000);
 
-// ── CALENDAR ──
+// Calendar Logic
 let calDate = new Date();
 function renderCalendar() {
   const year = calDate.getFullYear();
@@ -531,27 +616,17 @@ function renderCalendar() {
   document.getElementById('cal-month-label').textContent = `${monthNames[month]} ${year}`;
   const grid = document.getElementById('cal-grid');
   grid.innerHTML = '';
-
-  ['Su','Mo','Tu','We','Th','Fr','Sa'].forEach(d => {
-    const el = document.createElement('div');
-    el.className = 'cal-day-name';
-    el.textContent = d;
-    grid.appendChild(el);
+  ['S','M','T','W','T','F','S'].forEach(d => {
+    const el = document.createElement('div'); el.className = 'cal-day-name'; el.textContent = d; grid.appendChild(el);
   });
-
   const firstDay = new Date(year, month, 1).getDay();
   const daysInMonth = new Date(year, month+1, 0).getDate();
-
   for (let i = 0; i < firstDay; i++) {
-    const el = document.createElement('div');
-    el.className = 'cal-day empty'; el.textContent = '.'; grid.appendChild(el);
+    const el = document.createElement('div'); el.className = 'cal-day empty'; el.textContent = '.'; grid.appendChild(el);
   }
   for (let d = 1; d <= daysInMonth; d++) {
-    const el = document.createElement('div');
-    el.className = 'cal-day'; el.textContent = d;
-    if (d === today.getDate() && month === today.getMonth() && year === today.getFullYear()) {
-      el.classList.add('today');
-    }
+    const el = document.createElement('div'); el.className = 'cal-day'; el.textContent = d;
+    if (d === today.getDate() && month === today.getMonth() && year === today.getFullYear()) el.classList.add('today');
     grid.appendChild(el);
   }
 }
@@ -559,112 +634,75 @@ document.getElementById('cal-prev').addEventListener('click', () => { calDate.se
 document.getElementById('cal-next').addEventListener('click', () => { calDate.setMonth(calDate.getMonth() + 1); renderCalendar(); });
 renderCalendar();
 
-// ── WINDOW MANAGEMENT ──
+// Window Management
 let activeWindow = null;
 let zCounter = 200;
 
-function openWindow(id) {
+window.openWindow = function(id) {
   const win = document.getElementById('window-' + id);
   win.classList.add('visible');
   bringToFront(win);
-}
+  document.getElementById('dock-' + id).classList.add('active'); 
+};
 
-function closeWindow(id) {
+window.closeWindow = function(id) {
   const win = document.getElementById('window-' + id);
   win.classList.remove('visible');
-}
+  document.getElementById('dock-' + id).classList.remove('active');
+};
 
-function closeWidget(id, event) {
+window.closeWidget = function(id, event) {
   document.getElementById(id).style.display = 'none';
   if(event) event.stopPropagation();
-}
+};
 
 function bringToFront(win) {
-  if (activeWindow && activeWindow !== win) {
-    activeWindow.classList.add('inactive');
-    activeWindow.classList.remove('active');
-  }
-  win.classList.remove('inactive');
+  if (activeWindow && activeWindow !== win) activeWindow.classList.remove('active');
   win.classList.add('active');
   win.style.zIndex = ++zCounter;
   activeWindow = win;
 }
 
-// Draggable Logic
+// Draggable Logic (메모장 입력 버그 수정)
 function makeDraggable(el, handleId) {
-  const handle = document.getElementById(handleId);
+  const handle = document.getElementById(handleId) || el;
   let isDragging = false, startX, startY, origX, origY;
 
-  handle.addEventListener('mousedown', (e) => {
-    if (e.target.closest('.xp-controls') || e.target.closest('.widget-close')) return;
+  const startDrag = (x, y) => {
     isDragging = true;
-    startX = e.clientX; startY = e.clientY;
+    startX = x; startY = y;
     const rect = el.getBoundingClientRect();
     origX = rect.left; origY = rect.top;
     bringToFront(el);
+  };
+
+  handle.addEventListener('mousedown', (e) => {
+    // 닫기버튼, 텍스트에리어(메모장) 클릭 시 드래그 무시
+    if (e.target.closest('.traffic-lights') || e.target.closest('.widget-close-btn') || e.target.tagName === 'TEXTAREA' || e.target.closest('.resize-handle')) return;
+    startDrag(e.clientX, e.clientY); 
     e.preventDefault();
   });
   
   handle.addEventListener('touchstart', (e) => {
-    if (e.target.closest('.xp-controls') || e.target.closest('.widget-close')) return;
-    isDragging = true;
-    startX = e.touches[0].clientX; startY = e.touches[0].clientY;
-    const rect = el.getBoundingClientRect();
-    origX = rect.left; origY = rect.top;
-    bringToFront(el);
+    if (e.target.closest('.traffic-lights') || e.target.closest('.widget-close-btn') || e.target.tagName === 'TEXTAREA' || e.target.closest('.resize-handle')) return;
+    startDrag(e.touches[0].clientX, e.touches[0].clientY);
   }, {passive: true});
 
-  document.addEventListener('mousemove', (e) => {
-    if (!isDragging) return;
-    el.style.left = (origX + (e.clientX - startX)) + 'px';
-    el.style.top = (origY + (e.clientY - startY)) + 'px';
-  });
-  
-  document.addEventListener('touchmove', (e) => {
-    if (!isDragging) return;
-    el.style.left = (origX + (e.touches[0].clientX - startX)) + 'px';
-    el.style.top = (origY + (e.touches[0].clientY - startY)) + 'px';
-  }, {passive: true});
-
+  document.addEventListener('mousemove', (e) => { if (isDragging) { el.style.left = (origX + (e.clientX - startX)) + 'px'; el.style.top = (origY + (e.clientY - startY)) + 'px'; } });
+  document.addEventListener('touchmove', (e) => { if (isDragging) { el.style.left = (origX + (e.touches[0].clientX - startX)) + 'px'; el.style.top = (origY + (e.touches[0].clientY - startY)) + 'px'; } }, {passive: true});
   document.addEventListener('mouseup', () => { isDragging = false; });
   document.addEventListener('touchend', () => { isDragging = false; });
-
+  
   el.addEventListener('mousedown', () => bringToFront(el));
   el.addEventListener('touchstart', () => bringToFront(el), {passive:true});
 }
 
 makeDraggable(document.getElementById('window-works'), 'titlebar-works');
 makeDraggable(document.getElementById('window-resume'), 'titlebar-resume');
-makeDraggable(document.getElementById('widget-notes'), 'wt-notes');
-makeDraggable(document.getElementById('widget-cal'), 'wt-cal');
+makeDraggable(document.getElementById('widget-notes'));
+makeDraggable(document.getElementById('widget-cal'));
 
-// ── ICON SELECTION & MOBILE TAP HANDLING ──
-let lastClickTime = 0;
-let lastClickedId = '';
-
-function handleIconClick(el, windowId) {
-  document.querySelectorAll('.icon').forEach(i => i.classList.remove('selected'));
-  el.classList.add('selected');
-  
-  if (window.innerWidth <= 768) {
-    openWindow(windowId);
-  } else {
-    const currentTime = new Date().getTime();
-    if (lastClickedId === windowId && currentTime - lastClickTime < 400) {
-      openWindow(windowId);
-    }
-    lastClickTime = currentTime;
-    lastClickedId = windowId;
-  }
-}
-
-document.getElementById('desktop').addEventListener('click', (e) => {
-  if (!e.target.closest('.icon') && !e.target.closest('.window') && !e.target.closest('.widget')) {
-    document.querySelectorAll('.icon').forEach(i => i.classList.remove('selected'));
-  }
-});
-
-// ── WINDOW RESIZE ──
+// ── WINDOW RESIZE (창 크기 조절 복구) ──
 document.querySelectorAll('.resize-handle').forEach(handle => {
   const win = handle.closest('.window');
   let isResizing = false, startX, startY, startW, startH;
@@ -688,6 +726,19 @@ document.querySelectorAll('.resize-handle').forEach(handle => {
   document.addEventListener('touchmove', (e) => doResize(e.touches[0].clientX, e.touches[0].clientY), {passive: true});
   document.addEventListener('mouseup', () => { isResizing = false; });
   document.addEventListener('touchend', () => { isResizing = false; });
+});
+
+// Icon click logic
+window.handleIconClick = function(el, windowId) {
+  document.querySelectorAll('.icon').forEach(i => i.classList.remove('selected'));
+  el.classList.add('selected');
+  openWindow(windowId);
+};
+
+document.getElementById('desktop').addEventListener('click', (e) => {
+  if (!e.target.closest('.icon') && !e.target.closest('.window') && !e.target.closest('.widget')) {
+    document.querySelectorAll('.icon').forEach(i => i.classList.remove('selected'));
+  }
 });
 </script>
 </body>
