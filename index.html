@@ -3,30 +3,20 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Jihyeon — macOS Portfolio</title>
-<link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@400;500;600&display=swap" rel="stylesheet">
+<title>Jihyeon — Win98 Fluid Portfolio</title>
 <style>
-  :root {
-    --glass-bg: rgba(30, 30, 35, 0.65);
-    --glass-border: rgba(255, 255, 255, 0.15);
-    --text-primary: rgba(255, 255, 255, 0.95);
-    --text-secondary: rgba(255, 255, 255, 0.6);
-  }
-
-  * { margin: 0; padding: 0; box-sizing: border-box; }
+  /* 윈도우 98 특유의 픽셀 폰트 감성 (Tahoma, MS Sans Serif) */
+  * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Tahoma', 'MS Sans Serif', sans-serif; }
 
   body {
-    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    width: 100vw;
-    height: 100vh;
+    width: 100vw; height: 100vh;
     overflow: hidden;
-    background: #050505;
-    color: var(--text-primary);
+    background: #050510; /* Shader 로딩 전 다크 배경 */
     cursor: default;
     user-select: none;
   }
 
-  /* ── 3D BACKGROUND CANVAS ── */
+  /* ── 3D FLUID BACKGROUND CANVAS ── */
   #webgl-canvas {
     position: fixed;
     top: 0; left: 0;
@@ -34,250 +24,226 @@
     z-index: 0;
   }
 
-  /* ── MAC MENU BAR ── */
-  #menubar {
+  /* ── WINDOWS 98 TASKBAR ── */
+  #taskbar {
     position: fixed;
-    top: 0; left: 0; right: 0;
-    height: 28px;
-    background: rgba(20, 20, 20, 0.4);
-    backdrop-filter: blur(20px) saturate(1.5);
-    -webkit-backdrop-filter: blur(20px) saturate(1.5);
+    bottom: 0; left: 0; right: 0;
+    height: 36px;
+    background: #c0c0c0;
+    border-top: 2px solid #fff;
+    box-shadow: inset 0 2px 0 #dfdfdf;
     display: flex;
     align-items: center;
-    padding: 0 16px;
-    gap: 20px;
+    padding: 2px 4px;
     z-index: 1000;
-    font-size: 13px;
-    font-weight: 500;
-    letter-spacing: 0.3px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   }
 
-  .menu-left { display: flex; align-items: center; gap: 16px; }
-  .apple-logo { font-size: 16px; margin-bottom: 2px; cursor: pointer; }
-  .menu-item { cursor: pointer; transition: opacity 0.2s; }
-  .menu-item:hover { opacity: 0.7; }
-  .menu-item.bold { font-weight: 600; }
-  .menu-right { margin-left: auto; display: flex; align-items: center; gap: 16px; }
+  .start-btn {
+    height: 100%;
+    background: #c0c0c0;
+    border: 2px solid;
+    border-color: #fff #808080 #808080 #fff;
+    color: black;
+    font-weight: bold;
+    font-size: 14px;
+    padding: 0 12px;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+  }
+  .start-btn:active {
+    border-color: #808080 #fff #fff #808080;
+    padding: 2px 10px 0 14px; /* 눌리는 효과 */
+  }
+  .start-logo { margin-right: 6px; font-size: 16px; font-weight: normal; }
+
+  .taskbar-items { flex: 1; padding: 0 8px; display: flex; gap: 4px; }
+  
+  /* System Tray (시계 영역) */
+  .system-tray {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    border: 2px solid;
+    border-color: #808080 #fff #fff #808080;
+    font-size: 12px;
+    color: black;
+  }
 
   /* ── DESKTOP ── */
   #desktop {
     position: fixed;
-    inset: 28px 0 80px 0;
+    inset: 0 0 36px 0;
     z-index: 10;
   }
 
-  /* ── DESKTOP ICONS ── */
+  /* ── DESKTOP ICONS (Win98 Style) ── */
   .icon {
     position: absolute;
     width: 80px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 8px;
+    gap: 4px;
     cursor: pointer;
-    padding: 8px;
-    border-radius: 6px;
-    transition: background 0.2s;
+    padding: 4px;
   }
-  .icon:hover { background: rgba(255, 255, 255, 0.1); }
   .icon-img {
-    width: 60px; height: 60px;
+    width: 48px; height: 48px;
     display: flex; align-items: center; justify-content: center;
-    filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));
   }
   .icon-label {
-    font-size: 13px;
+    font-size: 12px;
     color: white;
     text-align: center;
-    text-shadow: 0 1px 3px rgba(0,0,0,0.8);
-    font-weight: 500;
+    padding: 1px 4px;
   }
-  .icon.selected { background: rgba(255, 255, 255, 0.15); }
-  .icon.selected .icon-label { background: #0066cc; border-radius: 4px; padding: 2px 6px; }
+  .icon.selected .icon-img { filter: sepia(1) hue-rotate(180deg) saturate(3); }
+  .icon.selected .icon-label { background: #000080; color: white; border: 1px dotted #fff; }
 
-  /* ── MAC WINDOWS ── */
+  /* ── WINDOWS 98 WINDOW ── */
   .window {
     position: absolute;
-    border-radius: 12px;
-    background: var(--glass-bg);
-    backdrop-filter: blur(30px) saturate(1.2);
-    -webkit-backdrop-filter: blur(30px) saturate(1.2);
-    border: 1px solid var(--glass-border);
-    box-shadow: 0 20px 50px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1);
+    background: #c0c0c0;
+    border: 2px solid;
+    border-color: #dfdfdf #000 #000 #dfdfdf;
+    box-shadow: 1px 1px 0 #000;
     z-index: 100;
     display: none;
     flex-direction: column;
-    overflow: hidden;
   }
   .window.visible { display: flex; }
-  .window.active { z-index: 200; box-shadow: 0 30px 60px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.2); }
+  .window.active { z-index: 200; }
 
   .window-titlebar {
-    height: 48px;
+    height: 24px;
+    background: #000080; /* Win98 Navy */
     display: flex;
     align-items: center;
-    padding: 0 16px;
+    justify-content: space-between;
+    padding: 0 4px;
     cursor: move;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-    position: relative;
+    margin: 2px 2px 0 2px;
   }
-
-  .traffic-lights { display: flex; gap: 8px; z-index: 2; }
-  .tl { width: 12px; height: 12px; border-radius: 50%; cursor: pointer; transition: filter 0.2s; }
-  .tl:hover { filter: brightness(0.8); }
-  .tl-close { background: #ff5f56; border: 0.5px solid #e0443e; }
-  .tl-min { background: #ffbd2e; border: 0.5px solid #dea123; }
-  .tl-max { background: #27c93f; border: 0.5px solid #1aab29; }
+  .window.inactive .window-titlebar { background: #808080; }
 
   .window-title {
-    position: absolute;
-    left: 0; right: 0;
-    text-align: center;
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--text-primary);
+    font-size: 12px;
+    font-weight: bold;
+    color: white;
     pointer-events: none;
+    margin-left: 4px;
+    letter-spacing: 0.5px;
   }
+
+  /* Win98 Window Controls */
+  .win98-controls { display: flex; gap: 2px; }
+  .w-btn {
+    width: 18px; height: 18px;
+    background: #c0c0c0;
+    border: 2px solid;
+    border-color: #dfdfdf #808080 #808080 #dfdfdf;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; font-weight: bold; color: black; cursor: pointer;
+  }
+  .w-btn:active { border-color: #808080 #dfdfdf #dfdfdf #808080; padding: 1px 0 0 1px; }
 
   .window-body {
     flex: 1;
     overflow-y: auto;
-    padding: 20px;
-    color: var(--text-primary);
+    margin: 4px;
+    padding: 8px;
+    background: #fff;
+    border: 2px solid;
+    border-color: #808080 #dfdfdf #dfdfdf #808080;
+    position: relative;
+    color: black;
   }
 
-  /* Scrollbar & Resize Handle 복구 */
-  ::-webkit-scrollbar { width: 8px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
-  
-  .resize-handle {
-    position: absolute; bottom: 2px; right: 2px; width: 16px; height: 16px; cursor: se-resize;
-    background: radial-gradient(circle at 60% 60%, rgba(255,255,255,0.3) 1px, transparent 1px);
-    background-size: 4px 4px; z-index: 10;
-  }
+  /* Scrollbar - Win98 blocky style */
+  ::-webkit-scrollbar { width: 16px; background: #dfdfdf; border-left: 1px solid #fff; }
+  ::-webkit-scrollbar-thumb { background: #c0c0c0; border: 2px solid; border-color: #fff #808080 #808080 #fff; }
 
   /* Works Grid */
-  .works-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .works-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 8px; }
   .project-card {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 10px;
-    overflow: hidden;
+    background: #c0c0c0;
+    border: 2px solid; border-color: #dfdfdf #808080 #808080 #dfdfdf;
     cursor: pointer;
-    transition: transform 0.2s, background 0.2s;
   }
-  .project-card:hover { transform: translateY(-4px); background: rgba(255, 255, 255, 0.1); }
-  .project-thumb { height: 120px; display: flex; align-items: center; justify-content: center; font-size: 40px; background: linear-gradient(135deg, #667eea, #764ba2); }
-  .project-thumb.t2 { background: linear-gradient(135deg, #f093fb, #f5576c); }
-  .project-thumb.t3 { background: linear-gradient(135deg, #4facfe, #00f2fe); }
-  .project-thumb.t4 { background: linear-gradient(135deg, #43e97b, #38f9d7); }
-  .project-info { padding: 16px; }
-  .project-name { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
-  .project-desc { font-size: 13px; color: var(--text-secondary); line-height: 1.4; }
+  .project-card:active { border-color: #808080 #dfdfdf #dfdfdf #808080; }
+  .project-thumb { height: 100px; display: flex; align-items: center; justify-content: center; font-size: 32px; background: #000080; color: white; border-bottom: 2px solid #808080;}
+  .project-info { padding: 8px; }
+  .project-name { font-size: 13px; font-weight: bold; margin-bottom: 4px; }
+  .project-desc { font-size: 11px; color: #333; line-height: 1.4; }
 
   /* Resume Content */
-  .resume-header { border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 20px; margin-bottom: 20px; text-align: center; }
-  .resume-name { font-size: 32px; font-weight: 600; margin-bottom: 4px; letter-spacing: -0.5px; }
-  .resume-role { font-size: 15px; color: var(--text-secondary); }
-  .resume-section { margin-bottom: 24px; }
-  .resume-section-title { font-size: 13px; font-weight: 600; color: #0a84ff; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
-  .resume-item { margin-bottom: 16px; }
-  .resume-item-title { font-size: 15px; font-weight: 600; }
-  .resume-item-date { float: right; font-size: 13px; color: var(--text-secondary); }
-  .resume-item-sub { font-size: 14px; color: rgba(255,255,255,0.8); margin-top: 4px; }
-  .resume-item-desc { font-size: 13px; color: var(--text-secondary); margin-top: 6px; line-height: 1.5; }
-  .skill-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
-  .skill-tag { font-size: 12px; padding: 4px 10px; background: rgba(255,255,255,0.1); border-radius: 12px; }
+  .resume-content { padding: 12px; }
+  .resume-header { border-bottom: 1px dashed #808080; padding-bottom: 16px; margin-bottom: 16px; }
+  .resume-name { font-size: 24px; font-weight: bold; margin-bottom: 4px; }
+  .resume-role { font-size: 14px; color: #333; }
+  .resume-section { margin-bottom: 20px; }
+  .resume-section-title { font-size: 13px; font-weight: bold; color: #000080; background: #c0c0c0; padding: 2px 4px; border: 1px solid #808080; margin-bottom: 10px; display: inline-block; }
+  .resume-item { margin-bottom: 12px; }
+  .resume-item-title { font-size: 13px; font-weight: bold; }
+  .resume-item-date { float: right; font-size: 11px; color: #666; }
+  .resume-item-sub { font-size: 12px; color: #444; margin-top: 2px; }
+  .resume-item-desc { font-size: 12px; color: #333; margin-top: 4px; line-height: 1.4; }
 
-  /* ── MAC WIDGETS ── */
+  /* ── WIN98 WIDGETS (Tool Windows) ── */
   .widget {
     position: absolute;
-    border-radius: 16px;
-    background: var(--glass-bg);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid var(--glass-border);
-    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    background: #c0c0c0;
+    border: 2px solid;
+    border-color: #dfdfdf #000 #000 #dfdfdf;
     z-index: 50;
     cursor: move;
   }
-  .widget-close-btn { position: absolute; top: 12px; left: 12px; color: var(--text-secondary); cursor: pointer; font-size: 12px; display: none; z-index: 10; }
-  .widget:hover .widget-close-btn { display: block; }
+  .widget-titlebar {
+    height: 18px; background: #000080; color: white; display: flex; align-items: center; justify-content: space-between; padding: 0 4px; margin: 2px;
+  }
+  .widget-title-text { font-size: 11px; font-weight: bold; }
+  .widget-close-btn {
+    width: 14px; height: 14px; background: #c0c0c0; border: 2px solid; border-color: #dfdfdf #808080 #808080 #dfdfdf; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: bold; color: black; cursor: pointer;
+  }
+  .widget-close-btn:active { border-color: #808080 #dfdfdf #dfdfdf #808080; }
   
-  .notes-body { padding: 20px; }
-  .notes-lines { font-size: 15px; line-height: 1.6; font-family: "SF Pro Display", sans-serif; background: transparent; border: none; outline: none; width: 200px; height: 160px; resize: none; color: white;}
+  .notes-body { margin: 2px; border: 2px solid; border-color: #808080 #fff #fff #808080; background: #ffffcc; padding: 8px;}
+  .notes-lines { font-size: 13px; line-height: 1.5; font-family: 'Comic Sans MS', cursive; background: transparent; border: none; outline: none; width: 180px; height: 120px; resize: none; color: black;}
 
-  .cal-body { padding: 16px; width: 240px; }
-  .cal-header { display: flex; justify-content: space-between; margin-bottom: 12px; font-weight: 600; font-size: 15px; }
-  .cal-nav { cursor: pointer; color: var(--text-secondary); transition: color 0.2s; }
-  .cal-nav:hover { color: white; }
-  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
-  .cal-day-name { font-size: 12px; text-align: center; color: var(--text-secondary); padding-bottom: 8px; }
-  .cal-day { font-size: 13px; text-align: center; padding: 6px 0; cursor: pointer; border-radius: 50%; transition: background 0.2s; }
-  .cal-day:hover { background: rgba(255,255,255,0.1); }
-  .cal-day.today { background: #ff3b30; color: white; font-weight: 600; }
-  .cal-day.empty { color: transparent; cursor: default; }
+  .cal-body { margin: 2px; background: #fff; padding: 8px; width: 220px; border: 2px solid; border-color: #808080 #fff #fff #808080;}
+  .cal-header { display: flex; justify-content: space-between; margin-bottom: 8px; font-weight: bold; font-size: 13px; color: black; }
+  .cal-nav { cursor: pointer; color: black; background: #dfdfdf; padding: 0 4px; border: 1px solid #808080; }
+  .cal-nav:active { border-color: #000; background: #c0c0c0; }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; background: #c0c0c0; border: 1px solid #808080; }
+  .cal-day-name { font-size: 11px; text-align: center; background: #dfdfdf; color: black; padding: 2px 0; }
+  .cal-day { font-size: 12px; text-align: center; padding: 4px 0; cursor: pointer; background: white; color: black;}
+  .cal-day:hover { background: #000080; color: white; }
+  .cal-day.today { border: 1px dashed #000080; font-weight: bold; }
+  .cal-day.empty { background: #fff; color: transparent; cursor: default; }
 
-  /* ── MAC DOCK ── */
-  #dock-container {
-    position: fixed;
-    bottom: 12px; left: 0; right: 0;
-    display: flex; justify-content: center;
-    z-index: 1000;
+  /* Resize Handle */
+  .resize-handle {
+    position: absolute; bottom: 2px; right: 2px; width: 14px; height: 14px; cursor: se-resize;
+    background: repeating-linear-gradient(135deg, transparent, transparent 2px, #808080 2px, #808080 3px);
+    z-index: 10;
   }
-  #dock {
-    background: rgba(30, 30, 30, 0.4);
-    backdrop-filter: blur(20px) saturate(1.5);
-    -webkit-backdrop-filter: blur(20px) saturate(1.5);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    padding: 8px 12px;
-    border-radius: 24px;
-    display: flex;
-    gap: 12px;
-    align-items: flex-end;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-  }
-  .dock-icon-wrap {
-    display: flex; flex-direction: column; align-items: center; gap: 4px;
-    cursor: pointer; position: relative;
-  }
-  .dock-icon {
-    width: 50px; height: 50px;
-    border-radius: 12px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 24px;
-    transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1), margin 0.2s;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-  }
-  .dock-icon-wrap:hover .dock-icon { transform: scale(1.3) translateY(-10px); }
-  .dock-dot { width: 4px; height: 4px; border-radius: 50%; background: rgba(255,255,255,0.8); opacity: 0; transition: opacity 0.2s; }
-  .dock-icon-wrap.active .dock-dot { opacity: 1; }
-  
-  .dock-tooltip {
-    position: absolute; top: -40px;
-    background: rgba(0,0,0,0.6); backdrop-filter: blur(10px);
-    color: white; font-size: 12px; padding: 4px 10px; border-radius: 6px;
-    opacity: 0; pointer-events: none; transition: opacity 0.2s; white-space: nowrap;
-  }
-  .dock-icon-wrap:hover .dock-tooltip { opacity: 1; }
 
   /* ── MOBILE RESPONSIVE ── */
   @media (max-width: 768px) {
     .widget { display: none !important; }
     .window { width: 94vw !important; height: 85vh !important; left: 3vw !important; top: 5vh !important; }
     .works-grid { grid-template-columns: 1fr; }
-    #dock-container { bottom: 8px; }
-    .dock-icon { width: 40px; height: 40px; font-size: 20px; }
+    #taskbar { height: 44px; }
+    .start-btn { font-size: 16px; padding: 0 16px; }
   }
 </style>
 
 <script type="importmap">
   {
     "imports": {
-      "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
-      "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+      "three": "https://unpkg.com/three@0.160.0/build/three.module.js"
     }
   }
 </script>
@@ -286,50 +252,36 @@
 
 <canvas id="webgl-canvas"></canvas>
 
-<div id="menubar">
-  <div class="menu-left">
-    <span class="apple-logo"></span>
-    <span class="menu-item bold">Jihyeon</span>
-    <span class="menu-item">File</span>
-    <span class="menu-item">Edit</span>
-    <span class="menu-item">View</span>
-    <span class="menu-item">Window</span>
-    <span class="menu-item">Help</span>
-  </div>
-  <div class="menu-right">
-    <span class="menu-item">Wi-Fi</span>
-    <span class="menu-item">100%</span>
-    <span id="clock" class="menu-item">Fri May 8  10:58 AM</span>
-  </div>
-</div>
-
 <div id="desktop">
 
-  <div class="icon" style="left:30px; top:30px" onclick="handleIconClick(this, 'works')">
+  <div class="icon" style="left:20px; top:20px" onclick="handleIconClick(this, 'works')">
     <div class="icon-img">
-      <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M10 25 C10 20, 15 15, 20 15 L40 15 L50 25 L80 25 C85 25, 90 30, 90 35 L90 80 C90 85, 85 90, 80 90 L20 90 C15 90, 10 85, 10 80 Z" fill="#0A84FF" fill-opacity="0.8"/>
-        <path d="M10 35 C10 30, 15 25, 20 25 L80 25 C85 25, 90 30, 90 35 L90 80 C90 85, 85 90, 80 90 L20 90 C15 90, 10 85, 10 80 Z" fill="#3E99FF"/>
+      <svg viewBox="0 0 48 48" width="100%" height="100%">
+        <path d="M4 10 h14 l4 4 h22 v24 h-40 z" fill="#ffcc00" stroke="black" stroke-width="1.5"/>
+        <path d="M4 18 h40 v16 h-40 z" fill="#ffe066" stroke="black" stroke-width="1.5"/>
       </svg>
     </div>
     <span class="icon-label">Works</span>
   </div>
 
-  <div class="icon" style="left:30px; top:140px" onclick="handleIconClick(this, 'resume')">
+  <div class="icon" style="left:20px; top:110px" onclick="handleIconClick(this, 'resume')">
     <div class="icon-img">
-      <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M10 25 C10 20, 15 15, 20 15 L40 15 L50 25 L80 25 C85 25, 90 30, 90 35 L90 80 C90 85, 85 90, 80 90 L20 90 C15 90, 10 85, 10 80 Z" fill="#0A84FF" fill-opacity="0.8"/>
-        <path d="M10 35 C10 30, 15 25, 20 25 L80 25 C85 25, 90 30, 90 35 L90 80 C90 85, 85 90, 80 90 L20 90 C15 90, 10 85, 10 80 Z" fill="#3E99FF"/>
-        <rect x="35" y="45" width="30" height="4" rx="2" fill="white" opacity="0.8"/>
-        <rect x="35" y="55" width="20" height="4" rx="2" fill="white" opacity="0.8"/>
-        <rect x="35" y="65" width="25" height="4" rx="2" fill="white" opacity="0.8"/>
+      <svg viewBox="0 0 48 48" width="100%" height="100%">
+        <path d="M10 4 h20 l10 10 v30 h-30 z" fill="#ffffff" stroke="black" stroke-width="1.5"/>
+        <path d="M30 4 v10 h10" fill="none" stroke="black" stroke-width="1.5"/>
+        <rect x="16" y="20" width="16" height="2" fill="black"/>
+        <rect x="16" y="26" width="12" height="2" fill="black"/>
+        <rect x="16" y="32" width="18" height="2" fill="black"/>
       </svg>
     </div>
-    <span class="icon-label">Resume / CV</span>
+    <span class="icon-label">Resume_CV</span>
   </div>
 
   <div class="widget" id="widget-notes" style="right:40px; top:40px; display:block;">
-    <div class="widget-close-btn" onclick="closeWidget('widget-notes', event)">✕</div>
+    <div class="widget-titlebar" id="wt-notes">
+      <span class="widget-title-text">Sticky Note</span>
+      <div class="widget-close-btn" onclick="closeWidget('widget-notes', event)">X</div>
+    </div>
     <div class="notes-body">
       <textarea class="notes-lines" spellcheck="false">jihyeon — designer
 based in Seoul → Vancouver ✈
@@ -340,8 +292,11 @@ healing aesthetics ✦
     </div>
   </div>
 
-  <div class="widget" id="widget-cal" style="right:40px; top:280px; display:block;">
-    <div class="widget-close-btn" onclick="closeWidget('widget-cal', event)">✕</div>
+  <div class="widget" id="widget-cal" style="right:40px; top:250px; display:block;">
+    <div class="widget-titlebar" id="wt-cal">
+      <span class="widget-title-text">Calendar</span>
+      <div class="widget-close-btn" onclick="closeWidget('widget-cal', event)">X</div>
+    </div>
     <div class="cal-body">
       <div class="cal-header">
         <span class="cal-nav" id="cal-prev">‹</span>
@@ -352,14 +307,14 @@ healing aesthetics ✦
     </div>
   </div>
 
-  <div class="window" id="window-works" style="left:180px; top:80px; width:640px; height:480px;">
+  <div class="window" id="window-works" style="left:160px; top:60px; width:540px; height:420px;">
     <div class="window-titlebar" id="titlebar-works">
-      <div class="traffic-lights">
-        <div class="tl tl-close" onmousedown="closeWindow('works'); event.stopPropagation();"></div>
-        <div class="tl tl-min"></div>
-        <div class="tl tl-max"></div>
-      </div>
       <span class="window-title">Works</span>
+      <div class="win98-controls">
+        <div class="w-btn">_</div>
+        <div class="w-btn">☐</div>
+        <div class="w-btn" onmousedown="closeWindow('works'); event.stopPropagation();">X</div>
+      </div>
     </div>
     <div class="window-body">
       <div class="works-grid">
@@ -371,216 +326,184 @@ healing aesthetics ✦
           </div>
         </div>
         <div class="project-card">
-          <div class="project-thumb t2">🌿</div>
+          <div class="project-thumb">🌿</div>
           <div class="project-info">
             <div class="project-name">Wellbeing Dashboard</div>
             <div class="project-desc">Daily check-in system with minimal visual language</div>
           </div>
         </div>
         <div class="project-card">
-          <div class="project-thumb t3">✦</div>
+          <div class="project-thumb">✦</div>
           <div class="project-info">
             <div class="project-name">Portfolio v1</div>
             <div class="project-desc">Interactive web portfolio with cosmic theme</div>
           </div>
         </div>
         <div class="project-card">
-          <div class="project-thumb t4">📐</div>
+          <div class="project-thumb">📐</div>
           <div class="project-info">
             <div class="project-name">Design System</div>
             <div class="project-desc">Component library with Figma + code handoff</div>
           </div>
         </div>
       </div>
+      <div class="resize-handle"></div>
     </div>
-    <div class="resize-handle"></div>
   </div>
 
-  <div class="window" id="window-resume" style="left:240px; top:120px; width:580px; height:600px;">
+  <div class="window" id="window-resume" style="left:220px; top:100px; width:500px; height:500px;">
     <div class="window-titlebar" id="titlebar-resume">
-      <div class="traffic-lights">
-        <div class="tl tl-close" onmousedown="closeWindow('resume'); event.stopPropagation();"></div>
-        <div class="tl tl-min"></div>
-        <div class="tl tl-max"></div>
+      <span class="window-title">Resume.pdf - Adobe Reader</span>
+      <div class="win98-controls">
+        <div class="w-btn">_</div>
+        <div class="w-btn">☐</div>
+        <div class="w-btn" onmousedown="closeWindow('resume'); event.stopPropagation();">X</div>
       </div>
-      <span class="window-title">Resume.pdf</span>
     </div>
     <div class="window-body">
-      <div class="resume-header">
-        <div class="resume-name">Jihyeon</div>
-        <div class="resume-role">UI/UX Designer · App Designer</div>
-        <div style="font-size:14px; color:var(--text-secondary); margin-top:8px;">Seoul, Korea → Vancouver, BC &nbsp;|&nbsp; your@email.com</div>
-      </div>
-
-      <div class="resume-section">
-        <div class="resume-section-title">About</div>
-        <div style="font-size:14px; line-height:1.6; color:var(--text-primary);">
-          Designer with a healing-aesthetic sensibility, bridging emotional experience and functional interface design. Passionate about mobile apps, AI-assisted design workflows, and meaningful digital experiences.
+      <div class="resume-content">
+        <div class="resume-header">
+          <div class="resume-name">Jihyeon</div>
+          <div class="resume-role">UI/UX Designer · App Designer</div>
+          <div style="font-size:12px; color:#666; margin-top:8px;">Seoul, Korea → Vancouver, BC &nbsp;|&nbsp; your@email.com</div>
         </div>
-      </div>
 
-      <div class="resume-section">
-        <div class="resume-section-title">Experience</div>
-        <div class="resume-item">
-          <div>
-            <span class="resume-item-title">UI/UX Designer</span>
-            <span class="resume-item-date">2022 — Present</span>
+        <div class="resume-section">
+          <div class="resume-section-title">About</div>
+          <div style="font-size:12px; line-height:1.6; color:#000;">
+            Designer with a healing-aesthetic sensibility, bridging emotional experience and functional interface design. Passionate about mobile apps, AI-assisted design workflows, and meaningful digital experiences.
           </div>
-          <div class="resume-item-sub">Company Name · Seoul</div>
-          <div class="resume-item-desc">Product design for mobile apps, design system building, Figma-to-code workflow.</div>
         </div>
-        <div class="resume-item">
-          <div>
-            <span class="resume-item-title">Visual Designer</span>
-            <span class="resume-item-date">2020 — 2022</span>
-          </div>
-          <div class="resume-item-sub">Studio Name · Seoul</div>
-          <div class="resume-item-desc">Brand identity, illustration, digital publication design.</div>
-        </div>
-      </div>
 
-      <div class="resume-section">
-        <div class="resume-section-title">Skills</div>
-        <div class="skill-tags">
-          <span class="skill-tag">Figma</span>
-          <span class="skill-tag">Framer</span>
-          <span class="skill-tag">iOS Design</span>
-          <span class="skill-tag">Design Systems</span>
-          <span class="skill-tag">HTML/CSS</span>
-          <span class="skill-tag">Prototyping</span>
+        <div class="resume-section">
+          <div class="resume-section-title">Experience</div>
+          <div class="resume-item">
+            <div>
+              <span class="resume-item-title">UI/UX Designer</span>
+              <span class="resume-item-date">2022 — Present</span>
+            </div>
+            <div class="resume-item-sub">Company Name · Seoul</div>
+            <div class="resume-item-desc">Product design for mobile apps, design system building, Figma-to-code workflow.</div>
+          </div>
+          <div class="resume-item">
+            <div>
+              <span class="resume-item-title">Visual Designer</span>
+              <span class="resume-item-date">2020 — 2022</span>
+            </div>
+            <div class="resume-item-sub">Studio Name · Seoul</div>
+            <div class="resume-item-desc">Brand identity, illustration, digital publication design.</div>
+          </div>
         </div>
       </div>
+      <div class="resize-handle"></div>
     </div>
-    <div class="resize-handle"></div>
   </div>
 
 </div>
 
-<div id="dock-container">
-  <div id="dock">
-    <div class="dock-icon-wrap" onclick="goHome()">
-      <div class="dock-tooltip">Home / Desktop</div>
-      <div class="dock-icon" style="background: linear-gradient(180deg, #F9F9F9 0%, #D1D1D1 100%);">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-          <polyline points="9 22 9 12 15 12 15 22"></polyline>
-        </svg>
-      </div>
-      <div class="dock-dot"></div>
+<div id="taskbar">
+  <div class="start-btn" onclick="goHome()">
+    <span class="start-logo">⊞</span> HOME
+  </div>
+  <div class="taskbar-items">
     </div>
-    
-    <div class="dock-icon-wrap" onclick="openWindow('works')" id="dock-works">
-      <div class="dock-tooltip">Works</div>
-      <div class="dock-icon" style="background: linear-gradient(135deg, #0A84FF 0%, #0055B3 100%); color:white;">
-        ✦
-      </div>
-      <div class="dock-dot"></div>
-    </div>
-
-    <div class="dock-icon-wrap" onclick="openWindow('resume')" id="dock-resume">
-      <div class="dock-tooltip">Resume</div>
-      <div class="dock-icon" style="background: linear-gradient(135deg, #FF9500 0%, #D97B00 100%); color:white;">
-        📄
-      </div>
-      <div class="dock-dot"></div>
-    </div>
+  <div class="system-tray">
+    <span id="clock">12:00 AM</span>
   </div>
 </div>
 
 <script type="module">
-  // ── THREE.JS HOLOGRAPHIC BREATHING SPHERE ──
+  // ── THREE.JS FLUID SHADER (액체 쉐이더 구현) ──
+  // 지시하신 #402ffc (비비드 블루/퍼플) 컬러와 다크 모드 톤 믹스
   import * as THREE from 'three';
-  import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
-  import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
-  import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 
   const canvas = document.getElementById('webgl-canvas');
-  const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+  // 가볍고 빠른 성능을 위해 WebGLRenderer 세팅
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: false });
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
+  // 2D 쉐이더만 띄울 것이므로 Orthographic 카메라 사용
   const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
-  camera.position.z = 8;
+  const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+
+  // 화면 전체를 덮는 평면
+  const geometry = new THREE.PlaneGeometry(2, 2);
 
   const vertexShader = `
-    uniform float uTime;
-    varying vec3 vPosition;
+    varying vec2 vUv;
     void main() {
-      vPosition = position;
-      vec3 pos = position;
-      float noise = sin(pos.x * 2.0 + uTime) * sin(pos.y * 2.0 + uTime) * sin(pos.z * 2.0 + uTime);
-      pos += normal * noise * 0.15; 
-      gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
+      vUv = uv;
+      gl_Position = vec4(position, 1.0);
     }
   `;
 
+  // 액체가 흐르는 듯한 유기적인 Fragment Shader
   const fragmentShader = `
     uniform float uTime;
-    varying vec3 vPosition;
+    uniform vec2 uResolution;
+    varying vec2 vUv;
+
     void main() {
-      vec3 color = vec3(
-        0.5 + 0.5 * sin(vPosition.x * 3.0 + uTime),
-        0.5 + 0.5 * sin(vPosition.y * 3.0 + uTime + 2.0),
-        0.5 + 0.5 * sin(vPosition.z * 3.0 + uTime + 4.0)
-      );
+      // 비율 보정
+      vec2 p = vUv * 2.0 - 1.0;
+      p.x *= uResolution.x / uResolution.y;
+      
+      float t = uTime * 0.4; // 흐르는 속도 조절
+
+      // 다중 사인파를 이용한 유체(Fluid) 효과 왜곡
+      vec2 offset = p;
+      offset.x += sin(p.y * 3.0 + t) * 0.3;
+      offset.y += cos(p.x * 2.5 + t * 0.8) * 0.3;
+      
+      // 노이즈 값 생성 (액체의 굴곡을 표현)
+      float noise = sin(offset.x * 4.0 + t) * cos(offset.y * 4.0 - t);
+      
+      // 컬러 세팅 (다크 모드 유지, #402ffc 계열 액센트)
+      vec3 bgDark = vec3(0.02, 0.01, 0.06); // 딥 다크 네이비
+      vec3 midPurple = vec3(0.15, 0.05, 0.30); // 어두운 보라색
+      vec3 fluidAccent = vec3(0.25, 0.18, 0.99); // #402ffc 변환값
+      
+      // 노이즈에 따라 색상 섞기 (mix)
+      vec3 color = mix(bgDark, midPurple, noise + 0.5);
+      color = mix(color, fluidAccent, smoothstep(0.3, 1.0, noise + 0.5));
+      
+      // 외곽을 살짝 어둡게 (Vignette)
+      float dist = length(vUv - 0.5);
+      color -= dist * 0.4;
+      
       gl_FragColor = vec4(color, 1.0);
     }
   `;
 
-  const geometry = new THREE.IcosahedronGeometry(2.5, 12); 
   const material = new THREE.ShaderMaterial({
     vertexShader,
     fragmentShader,
-    uniforms: { uTime: { value: 0 } },
-    wireframe: true, 
-    transparent: true,
-    blending: THREE.AdditiveBlending
+    uniforms: {
+      uTime: { value: 0 },
+      uResolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) }
+    }
   });
 
-  const sphere = new THREE.Mesh(geometry, material);
-  scene.add(sphere);
-
-  const composer = new EffectComposer(renderer);
-  const renderPass = new RenderPass(scene, camera);
-  composer.addPass(renderPass);
-  
-  const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
-  bloomPass.threshold = 0;
-  bloomPass.strength = 1.2;
-  bloomPass.radius = 0.5;
-  composer.addPass(bloomPass);
-
-  let mouseX = 0;
-  let mouseY = 0;
-  document.addEventListener('mousemove', (event) => {
-    mouseX = (event.clientX / window.innerWidth) * 2 - 1;
-    mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
-  });
+  const plane = new THREE.Mesh(geometry, material);
+  scene.add(plane);
 
   const clock = new THREE.Clock();
   function animate() {
     requestAnimationFrame(animate);
-    const elapsedTime = clock.getElapsedTime();
-    material.uniforms.uTime.value = elapsedTime * 0.5;
-    
-    sphere.rotation.y += 0.002 + (mouseX * 0.01);
-    sphere.rotation.x += 0.002 + (mouseY * 0.01);
-
-    composer.render();
+    material.uniforms.uTime.value = clock.getElapsedTime();
+    renderer.render(scene, camera);
   }
   animate();
 
   window.addEventListener('resize', () => {
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
-    composer.setSize(window.innerWidth, window.innerHeight);
+    material.uniforms.uResolution.value.set(window.innerWidth, window.innerHeight);
   });
 </script>
 
 <script>
-// ── UI LOGIC ──
+// ── UI LOGIC (기능 훼손 방지) ──
 
 // HOME Button Logic
 window.goHome = function() {
@@ -590,18 +513,15 @@ window.goHome = function() {
     document.getElementById('widget-cal').style.display = 'block';
   }
   document.querySelectorAll('.icon').forEach(i => i.classList.remove('selected'));
-  document.querySelectorAll('.dock-icon-wrap').forEach(i => i.classList.remove('active'));
 };
 
 // Clock Logic
 function updateClock() {
   const now = new Date();
-  const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   let h = now.getHours(), m = now.getMinutes();
   const ampm = h >= 12 ? 'PM' : 'AM';
   h = h % 12 || 12;
-  document.getElementById('clock').textContent = `${days[now.getDay()]} ${months[now.getMonth()]} ${now.getDate()}  ${h}:${String(m).padStart(2,'0')} ${ampm}`;
+  document.getElementById('clock').textContent = `${h}:${String(m).padStart(2,'0')} ${ampm}`;
 }
 updateClock();
 setInterval(updateClock, 10000);
@@ -642,13 +562,10 @@ window.openWindow = function(id) {
   const win = document.getElementById('window-' + id);
   win.classList.add('visible');
   bringToFront(win);
-  document.getElementById('dock-' + id).classList.add('active'); 
 };
 
 window.closeWindow = function(id) {
-  const win = document.getElementById('window-' + id);
-  win.classList.remove('visible');
-  document.getElementById('dock-' + id).classList.remove('active');
+  document.getElementById('window-' + id).classList.remove('visible');
 };
 
 window.closeWidget = function(id, event) {
@@ -663,7 +580,7 @@ function bringToFront(win) {
   activeWindow = win;
 }
 
-// Draggable Logic (메모장 입력 버그 수정)
+// Draggable Logic (메모장 텍스트 클릭 예외 처리 유지)
 function makeDraggable(el, handleId) {
   const handle = document.getElementById(handleId) || el;
   let isDragging = false, startX, startY, origX, origY;
@@ -677,14 +594,13 @@ function makeDraggable(el, handleId) {
   };
 
   handle.addEventListener('mousedown', (e) => {
-    // 닫기버튼, 텍스트에리어(메모장) 클릭 시 드래그 무시
-    if (e.target.closest('.traffic-lights') || e.target.closest('.widget-close-btn') || e.target.tagName === 'TEXTAREA' || e.target.closest('.resize-handle')) return;
+    if (e.target.closest('.win98-controls') || e.target.closest('.widget-close-btn') || e.target.tagName === 'TEXTAREA' || e.target.closest('.resize-handle')) return;
     startDrag(e.clientX, e.clientY); 
     e.preventDefault();
   });
   
   handle.addEventListener('touchstart', (e) => {
-    if (e.target.closest('.traffic-lights') || e.target.closest('.widget-close-btn') || e.target.tagName === 'TEXTAREA' || e.target.closest('.resize-handle')) return;
+    if (e.target.closest('.win98-controls') || e.target.closest('.widget-close-btn') || e.target.tagName === 'TEXTAREA' || e.target.closest('.resize-handle')) return;
     startDrag(e.touches[0].clientX, e.touches[0].clientY);
   }, {passive: true});
 
@@ -702,7 +618,7 @@ makeDraggable(document.getElementById('window-resume'), 'titlebar-resume');
 makeDraggable(document.getElementById('widget-notes'));
 makeDraggable(document.getElementById('widget-cal'));
 
-// ── WINDOW RESIZE (창 크기 조절 복구) ──
+// Window Resize Handle Logic
 document.querySelectorAll('.resize-handle').forEach(handle => {
   const win = handle.closest('.window');
   let isResizing = false, startX, startY, startW, startH;
@@ -728,7 +644,7 @@ document.querySelectorAll('.resize-handle').forEach(handle => {
   document.addEventListener('touchend', () => { isResizing = false; });
 });
 
-// Icon click logic
+// Icon Click & Mobile View Support
 window.handleIconClick = function(el, windowId) {
   document.querySelectorAll('.icon').forEach(i => i.classList.remove('selected'));
   el.classList.add('selected');
