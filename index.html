@@ -11,7 +11,7 @@
   body {
     width: 100vw; height: 100vh;
     overflow: hidden;
-    background: #0A0E27; /* 로딩 전 다크 네이비 배경 */
+    background: #0A0E27; /* 쉐이더 베이스 컬러로 로딩 전 화면 맞춤 */
     cursor: default;
     user-select: none;
   }
@@ -410,411 +410,101 @@ healing aesthetics ✦
 </div>
 
 <script type="module">
+  // ── THREE.JS CUSTOM LIQUID GRADIENT SHADER ──
+  // 제공해주신 4가지 HEX 컬러를 부드럽게 믹스하는 유체 쉐이더입니다.
   import * as THREE from 'three';
 
-  // 1. 코드펜 원본 TouchTexture 클래스 (완벽 동일)
-  class TouchTexture {
-    constructor() {
-      this.size = 64;
-      this.width = this.height = this.size;
-      this.maxAge = 64;
-      this.radius = 0.25 * this.size; 
-      this.speed = 1 / this.maxAge;
-      this.trail = [];
-      this.last = null;
-      this.initTexture();
+  const canvas = document.getElementById('webgl-canvas');
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, alpha: true });
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+  const geometry = new THREE.PlaneGeometry(2, 2);
+
+  const vertexShader = `
+    varying vec2 vUv;
+    void main() {
+      vUv = uv;
+      gl_Position = vec4(position, 1.0);
     }
-    initTexture() {
-      this.canvas = document.createElement("canvas");
-      this.canvas.width = this.width;
-      this.canvas.height = this.height;
-      this.ctx = this.canvas.getContext("2d");
-      this.ctx.fillStyle = "black";
-      this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-      this.texture = new THREE.Texture(this.canvas);
+  `;
+
+  const fragmentShader = `
+    uniform float uTime;
+    uniform vec2 uResolution;
+    
+    // 전달받은 4가지 컬러 코드
+    uniform vec3 c1; // #542AFE
+    uniform vec3 c2; // #0A0E27
+    uniform vec3 c3; // #220554
+    uniform vec3 c4; // #221FFF
+
+    varying vec2 vUv;
+
+    void main() {
+      vec2 p = vUv * 2.0 - 1.0;
+      p.x *= uResolution.x / uResolution.y;
+
+      float t = uTime * 0.4;
+
+      // 유체 흐름을 위한 다중 노이즈/사인파 왜곡
+      vec2 offset = p;
+      offset.x += sin(p.y * 3.0 + t) * 0.4;
+      offset.y += cos(p.x * 2.5 + t * 0.8) * 0.4;
+
+      float n1 = sin(offset.x * 3.0 + t) * cos(offset.y * 3.0 - t);
+      float n2 = sin(offset.x * 2.0 - t * 0.5) * cos(offset.y * 4.0 + t * 0.5);
+
+      // 다크 네이비(#0A0E27) 베이스 위에 컬러들을 섞습니다.
+      vec3 col = mix(c2, c1, smoothstep(-1.0, 1.0, n1));
+      col = mix(col, c4, smoothstep(-0.5, 1.0, n2));
+      col = mix(col, c3, smoothstep(0.2, 1.0, n1 * n2));
+
+      // 화면 가장자리를 살짝 어둡게 (Vignette)
+      float dist = length(vUv - 0.5);
+      col -= dist * 0.3;
+
+      gl_FragColor = vec4(col, 1.0);
     }
-    update() {
-      this.clear();
-      let speed = this.speed;
-      for (let i = this.trail.length - 1; i >= 0; i--) {
-        const point = this.trail[i];
-        let f = point.force * speed * (1 - point.age / this.maxAge);
-        point.x += point.vx * f;
-        point.y += point.vy * f;
-        point.age++;
-        if (point.age > this.maxAge) {
-          this.trail.splice(i, 1);
-        } else {
-          this.drawPoint(point);
-        }
-      }
-      this.texture.needsUpdate = true;
+  `;
+
+  // Hex 코드를 Three.js Color 형식으로 변환하여 Uniform으로 전달
+  const material = new THREE.ShaderMaterial({
+    vertexShader,
+    fragmentShader,
+    uniforms: {
+      uTime: { value: 0 },
+      uResolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
+      c1: { value: new THREE.Color('#542AFE') },
+      c2: { value: new THREE.Color('#0A0E27') },
+      c3: { value: new THREE.Color('#220554') },
+      c4: { value: new THREE.Color('#221FFF') }
     }
-    clear() {
-      this.ctx.fillStyle = "black";
-      this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-    }
-    addTouch(point) {
-      let force = 0;
-      let vx = 0;
-      let vy = 0;
-      const last = this.last;
-      if (last) {
-        const dx = point.x - last.x;
-        const dy = point.y - last.y;
-        if (dx === 0 && dy === 0) return;
-        const dd = dx * dx + dy * dy;
-        let d = Math.sqrt(dd);
-        vx = dx / d;
-        vy = dy / d;
-        force = Math.min(dd * 20000, 2.0); 
-      }
-      this.last = { x: point.x, y: point.y };
-      this.trail.push({ x: point.x, y: point.y, age: 0, force, vx, vy });
-    }
-    drawPoint(point) {
-      const pos = { x: point.x * this.width, y: (1 - point.y) * this.height };
-      let intensity = 1;
-      if (point.age < this.maxAge * 0.3) {
-        intensity = Math.sin((point.age / (this.maxAge * 0.3)) * (Math.PI / 2));
-      } else {
-        const t = 1 - (point.age - this.maxAge * 0.3) / (this.maxAge * 0.7);
-        intensity = -t * (t - 2);
-      }
-      intensity *= point.force;
-      const radius = this.radius;
-      let color = `${((point.vx + 1) / 2) * 255}, ${((point.vy + 1) / 2) * 255}, ${intensity * 255}`;
-      let offset = this.size * 5;
-      this.ctx.shadowOffsetX = offset;
-      this.ctx.shadowOffsetY = offset;
-      this.ctx.shadowBlur = radius * 1;
-      this.ctx.shadowColor = `rgba(${color},${0.2 * intensity})`;
-      this.ctx.beginPath();
-      this.ctx.fillStyle = "rgba(255,0,0,1)";
-      this.ctx.arc(pos.x - offset, pos.y - offset, radius, 0, Math.PI * 2);
-      this.ctx.fill();
-    }
+  });
+
+  const plane = new THREE.Mesh(geometry, material);
+  scene.add(plane);
+
+  const clock = new THREE.Clock();
+  function animate() {
+    requestAnimationFrame(animate);
+    material.uniforms.uTime.value = clock.getElapsedTime();
+    renderer.render(scene, camera);
   }
+  animate();
 
-  // 2. 코드펜 원본 GradientBackground 클래스 (완벽 동일)
-  class GradientBackground {
-    constructor(sceneManager) {
-      this.sceneManager = sceneManager;
-      this.mesh = null;
-      this.uniforms = {
-        uTime: { value: 0 },
-        uResolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
-        uColor1: { value: new THREE.Color() },
-        uColor2: { value: new THREE.Color() },
-        uColor3: { value: new THREE.Color() },
-        uColor4: { value: new THREE.Color() },
-        uColor5: { value: new THREE.Color() },
-        uColor6: { value: new THREE.Color() },
-        uSpeed: { value: 1.2 }, 
-        uIntensity: { value: 1.8 },
-        uTouchTexture: { value: null },
-        uGrainIntensity: { value: 0.08 },
-        uZoom: { value: 1.0 }, 
-        uDarkNavy: { value: new THREE.Color() },
-        uGradientSize: { value: 1.0 }, 
-        uGradientCount: { value: 6.0 },
-        uColor1Weight: { value: 1.0 },
-        uColor2Weight: { value: 1.0 }
-      };
-    }
-    init() {
-      const viewSize = this.sceneManager.getViewSize();
-      const geometry = new THREE.PlaneGeometry(viewSize.width, viewSize.height, 1, 1);
-      const material = new THREE.ShaderMaterial({
-        uniforms: this.uniforms,
-        vertexShader: `
-            varying vec2 vUv;
-            void main() {
-              vec3 pos = position.xyz;
-              gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.);
-              vUv = uv;
-            }
-          `,
-        fragmentShader: `
-            uniform float uTime;
-            uniform vec2 uResolution;
-            uniform vec3 uColor1;
-            uniform vec3 uColor2;
-            uniform vec3 uColor3;
-            uniform vec3 uColor4;
-            uniform vec3 uColor5;
-            uniform vec3 uColor6;
-            uniform float uSpeed;
-            uniform float uIntensity;
-            uniform sampler2D uTouchTexture;
-            uniform float uGrainIntensity;
-            uniform float uZoom;
-            uniform vec3 uDarkNavy;
-            uniform float uGradientSize;
-            uniform float uGradientCount;
-            uniform float uColor1Weight;
-            uniform float uColor2Weight;
-            
-            varying vec2 vUv;
-            #define PI 3.14159265359
-            
-            float grain(vec2 uv, float time) {
-              vec2 grainUv = uv * uResolution * 0.5;
-              float grainValue = fract(sin(dot(grainUv + time, vec2(12.9898, 78.233))) * 43758.5453);
-              return grainValue * 2.0 - 1.0;
-            }
-            
-            vec3 getGradientColor(vec2 uv, float time) {
-              float gradientRadius = uGradientSize;
-              
-              vec2 center1 = vec2(0.5 + sin(time * uSpeed * 0.4) * 0.4, 0.5 + cos(time * uSpeed * 0.5) * 0.4);
-              vec2 center2 = vec2(0.5 + cos(time * uSpeed * 0.6) * 0.5, 0.5 + sin(time * uSpeed * 0.45) * 0.5);
-              vec2 center3 = vec2(0.5 + sin(time * uSpeed * 0.35) * 0.45, 0.5 + cos(time * uSpeed * 0.55) * 0.45);
-              vec2 center4 = vec2(0.5 + cos(time * uSpeed * 0.5) * 0.4, 0.5 + sin(time * uSpeed * 0.4) * 0.4);
-              vec2 center5 = vec2(0.5 + sin(time * uSpeed * 0.7) * 0.35, 0.5 + cos(time * uSpeed * 0.6) * 0.35);
-              vec2 center6 = vec2(0.5 + cos(time * uSpeed * 0.45) * 0.5, 0.5 + sin(time * uSpeed * 0.65) * 0.5);
-              
-              vec2 center7 = vec2(0.5 + sin(time * uSpeed * 0.55) * 0.38, 0.5 + cos(time * uSpeed * 0.48) * 0.42);
-              vec2 center8 = vec2(0.5 + cos(time * uSpeed * 0.65) * 0.36, 0.5 + sin(time * uSpeed * 0.52) * 0.44);
-              vec2 center9 = vec2(0.5 + sin(time * uSpeed * 0.42) * 0.41, 0.5 + cos(time * uSpeed * 0.58) * 0.39);
-              vec2 center10 = vec2(0.5 + cos(time * uSpeed * 0.48) * 0.37, 0.5 + sin(time * uSpeed * 0.62) * 0.43);
-              vec2 center11 = vec2(0.5 + sin(time * uSpeed * 0.68) * 0.33, 0.5 + cos(time * uSpeed * 0.44) * 0.46);
-              vec2 center12 = vec2(0.5 + cos(time * uSpeed * 0.38) * 0.39, 0.5 + sin(time * uSpeed * 0.56) * 0.41);
-              
-              float dist1 = length(uv - center1); float dist2 = length(uv - center2);
-              float dist3 = length(uv - center3); float dist4 = length(uv - center4);
-              float dist5 = length(uv - center5); float dist6 = length(uv - center6);
-              float dist7 = length(uv - center7); float dist8 = length(uv - center8);
-              float dist9 = length(uv - center9); float dist10 = length(uv - center10);
-              float dist11 = length(uv - center11); float dist12 = length(uv - center12);
-              
-              float influence1 = 1.0 - smoothstep(0.0, gradientRadius, dist1);
-              float influence2 = 1.0 - smoothstep(0.0, gradientRadius, dist2);
-              float influence3 = 1.0 - smoothstep(0.0, gradientRadius, dist3);
-              float influence4 = 1.0 - smoothstep(0.0, gradientRadius, dist4);
-              float influence5 = 1.0 - smoothstep(0.0, gradientRadius, dist5);
-              float influence6 = 1.0 - smoothstep(0.0, gradientRadius, dist6);
-              float influence7 = 1.0 - smoothstep(0.0, gradientRadius, dist7);
-              float influence8 = 1.0 - smoothstep(0.0, gradientRadius, dist8);
-              float influence9 = 1.0 - smoothstep(0.0, gradientRadius, dist9);
-              float influence10 = 1.0 - smoothstep(0.0, gradientRadius, dist10);
-              float influence11 = 1.0 - smoothstep(0.0, gradientRadius, dist11);
-              float influence12 = 1.0 - smoothstep(0.0, gradientRadius, dist12);
-              
-              vec2 rotatedUv1 = uv - 0.5; float angle1 = time * uSpeed * 0.15;
-              rotatedUv1 = vec2(rotatedUv1.x * cos(angle1) - rotatedUv1.y * sin(angle1), rotatedUv1.x * sin(angle1) + rotatedUv1.y * cos(angle1)) + 0.5;
-              vec2 rotatedUv2 = uv - 0.5; float angle2 = -time * uSpeed * 0.12;
-              rotatedUv2 = vec2(rotatedUv2.x * cos(angle2) - rotatedUv2.y * sin(angle2), rotatedUv2.x * sin(angle2) + rotatedUv2.y * cos(angle2)) + 0.5;
-              
-              float radialGradient1 = length(rotatedUv1 - 0.5); float radialGradient2 = length(rotatedUv2 - 0.5);
-              float radialInfluence1 = 1.0 - smoothstep(0.0, 0.8, radialGradient1);
-              float radialInfluence2 = 1.0 - smoothstep(0.0, 0.8, radialGradient2);
-              
-              vec3 color = vec3(0.0);
-              color += uColor1 * influence1 * (0.55 + 0.45 * sin(time * uSpeed)) * uColor1Weight;
-              color += uColor2 * influence2 * (0.55 + 0.45 * cos(time * uSpeed * 1.2)) * uColor2Weight;
-              color += uColor3 * influence3 * (0.55 + 0.45 * sin(time * uSpeed * 0.8)) * uColor1Weight;
-              color += uColor4 * influence4 * (0.55 + 0.45 * cos(time * uSpeed * 1.3)) * uColor2Weight;
-              color += uColor5 * influence5 * (0.55 + 0.45 * sin(time * uSpeed * 1.1)) * uColor1Weight;
-              color += uColor6 * influence6 * (0.55 + 0.45 * cos(time * uSpeed * 0.9)) * uColor2Weight;
-              
-              if (uGradientCount > 6.0) {
-                color += uColor1 * influence7 * (0.55 + 0.45 * sin(time * uSpeed * 1.4)) * uColor1Weight;
-                color += uColor2 * influence8 * (0.55 + 0.45 * cos(time * uSpeed * 1.5)) * uColor2Weight;
-                color += uColor3 * influence9 * (0.55 + 0.45 * sin(time * uSpeed * 1.6)) * uColor1Weight;
-                color += uColor4 * influence10 * (0.55 + 0.45 * cos(time * uSpeed * 1.7)) * uColor2Weight;
-              }
-              if (uGradientCount > 10.0) {
-                color += uColor5 * influence11 * (0.55 + 0.45 * sin(time * uSpeed * 1.8)) * uColor1Weight;
-                color += uColor6 * influence12 * (0.55 + 0.45 * cos(time * uSpeed * 1.9)) * uColor2Weight;
-              }
-              
-              color += mix(uColor1, uColor3, radialInfluence1) * 0.45 * uColor1Weight;
-              color += mix(uColor2, uColor4, radialInfluence2) * 0.4 * uColor2Weight;
-              
-              color = clamp(color, vec3(0.0), vec3(1.0)) * uIntensity;
-              float luminance = dot(color, vec3(0.299, 0.587, 0.114));
-              color = mix(vec3(luminance), color, 1.35);
-              color = pow(color, vec3(0.92)); 
-              
-              float brightness1 = length(color);
-              float mixFactor1 = max(brightness1 * 1.2, 0.15); 
-              color = mix(uDarkNavy, color, mixFactor1);
-              
-              float maxBrightness = 1.0; float brightness = length(color);
-              if (brightness > maxBrightness) { color = color * (maxBrightness / brightness); }
-              return color;
-            }
-            
-            void main() {
-              vec2 uv = vUv;
-              vec4 touchTex = texture2D(uTouchTexture, uv);
-              float vx = -(touchTex.r * 2.0 - 1.0);
-              float vy = -(touchTex.g * 2.0 - 1.0);
-              float intensity = touchTex.b;
-              uv.x += vx * 0.8 * intensity;
-              uv.y += vy * 0.8 * intensity;
-              
-              vec2 center = vec2(0.5);
-              float dist = length(uv - center);
-              float ripple = sin(dist * 20.0 - uTime * 3.0) * 0.04 * intensity;
-              float wave = sin(dist * 15.0 - uTime * 2.0) * 0.03 * intensity;
-              uv += vec2(ripple + wave);
-              
-              vec3 color = getGradientColor(uv, uTime);
-              float grainValue = grain(uv, uTime);
-              color += grainValue * uGrainIntensity;
-              
-              float timeShift = uTime * 0.5;
-              color.r += sin(timeShift) * 0.02;
-              color.g += cos(timeShift * 1.4) * 0.02;
-              color.b += sin(timeShift * 1.2) * 0.02;
-              
-              float brightness2 = length(color);
-              float mixFactor2 = max(brightness2 * 1.2, 0.15); 
-              color = mix(uDarkNavy, color, mixFactor2);
-              
-              color = clamp(color, vec3(0.0), vec3(1.0));
-              float maxBrightness = 1.0;
-              float brightness = length(color);
-              if (brightness > maxBrightness) { color = color * (maxBrightness / brightness); }
-              
-              gl_FragColor = vec4(color, 1.0);
-            }
-          `
-      });
-      this.mesh = new THREE.Mesh(geometry, material);
-      this.mesh.position.z = 0;
-      this.sceneManager.scene.add(this.mesh);
-    }
-    update(delta) { if (this.uniforms.uTime) { this.uniforms.uTime.value += delta; } }
-    onResize(width, height) {
-      const viewSize = this.sceneManager.getViewSize();
-      if (this.mesh) {
-        this.mesh.geometry.dispose();
-        this.mesh.geometry = new THREE.PlaneGeometry(viewSize.width, viewSize.height, 1, 1);
-      }
-      if (this.uniforms.uResolution) { this.uniforms.uResolution.value.set(width, height); }
-    }
-  }
-
-  // 3. 앱 구동 메인 클래스 (불필요한 UI 삭제, 색상 배분 완료)
-  class App {
-    constructor() {
-      const canvas = document.getElementById('webgl-canvas');
-      this.renderer = new THREE.WebGLRenderer({
-        canvas: canvas,
-        antialias: true,
-        powerPreference: "high-performance",
-        alpha: false,
-        stencil: false,
-        depth: false
-      });
-      this.renderer.setSize(window.innerWidth, window.innerHeight);
-      this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); 
-      
-      this.camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 10000);
-      this.camera.position.z = 50;
-      this.scene = new THREE.Scene();
-      this.clock = new THREE.Clock();
-
-      this.touchTexture = new TouchTexture();
-      this.gradientBackground = new GradientBackground(this);
-      this.gradientBackground.uniforms.uTouchTexture.value = this.touchTexture.texture;
-
-      this.init();
-    }
-    
-    init() {
-      this.gradientBackground.init();
-      
-      // ====================================================================
-      // 🎨 [여기서 색상을 변경하세요!] 
-      // 이전의 "어두운 배경 + 어두운 물감" 참사를 막기 위해,
-      // 6개의 물감(Orb)에는 눈에 띄는 밝고 비비드한 컬러들만 입혔습니다.
-      // 다크 네이비는 오직 심연(배경, uDarkNavy)으로만 사용합니다.
-      // ====================================================================
-      const uniforms = this.gradientBackground.uniforms;
-      uniforms.uColor1.value.set('#542AFE'); // 밝은 블루 퍼플
-      uniforms.uColor2.value.set('#AB2EFF'); // 비비드 퍼플
-      uniforms.uColor3.value.set('#221FFF'); // 비비드 블루
-      uniforms.uColor4.value.set('#542AFE'); // 밝은 블루 퍼플
-      uniforms.uColor5.value.set('#AB2EFF'); // 비비드 퍼플
-      uniforms.uColor6.value.set('#221FFF'); // 비비드 블루
-      
-      this.scene.background = new THREE.Color('#ffffff'); // 다크 네이비
-      uniforms.uDarkNavy.value.set('#ffffff'); // 배경 전용 다크 네이비
-      
-      // 코드펜 원본과 동일한 세팅
-      uniforms.uGradientSize.value = 1.0; 
-      uniforms.uGradientCount.value = 6.0; 
-      uniforms.uSpeed.value = 1.2; 
-      uniforms.uIntensity.value = 1.8; 
-      uniforms.uColor1Weight.value = 1.0; 
-      uniforms.uColor2Weight.value = 1.0; 
-      // ====================================================================
-
-      this.render();
-      this.tick();
-      window.addEventListener("resize", () => this.onResize());
-      window.addEventListener("mousemove", (ev) => this.onMouseMove(ev));
-      window.addEventListener("touchmove", (ev) => this.onTouchMove(ev), {passive: false});
-      document.addEventListener("visibilitychange", () => { if (!document.hidden) { this.render(); } });
-    }
-    
-    onTouchMove(ev) {
-      const touch = ev.touches[0];
-      this.onMouseMove({ clientX: touch.clientX, clientY: touch.clientY });
-    }
-    
-    onMouseMove(ev) {
-      this.mouse = {
-        x: ev.clientX / window.innerWidth,
-        y: 1 - ev.clientY / window.innerHeight
-      };
-      this.touchTexture.addTouch(this.mouse);
-    }
-    
-    getViewSize() {
-      const fovInRadians = (this.camera.fov * Math.PI) / 180;
-      const height = Math.abs(this.camera.position.z * Math.tan(fovInRadians / 2) * 2);
-      return { width: height * this.camera.aspect, height };
-    }
-    
-    update(delta) {
-      this.touchTexture.update();
-      this.gradientBackground.update(delta);
-    }
-    
-    render() {
-      const delta = this.clock.getDelta();
-      const clampedDelta = Math.min(delta, 0.1);
-      this.renderer.render(this.scene, this.camera);
-      this.update(clampedDelta);
-    }
-    
-    tick() {
-      this.render();
-      requestAnimationFrame(() => this.tick());
-    }
-    
-    onResize() {
-      this.camera.aspect = window.innerWidth / window.innerHeight;
-      this.camera.updateProjectionMatrix();
-      this.renderer.setSize(window.innerWidth, window.innerHeight);
-      this.gradientBackground.onResize(window.innerWidth, window.innerHeight);
-    }
-  }
-
-  const app = new App();
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", () => { app.render(); });
-  } else {
-    setTimeout(() => app.render(), 0);
-  }
+  window.addEventListener('resize', () => {
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    material.uniforms.uResolution.value.set(window.innerWidth, window.innerHeight);
+  });
 </script>
 
 <script>
+// ── UI LOGIC ──
+
+// HOME Button Logic
 window.goHome = function() {
   document.querySelectorAll('.window').forEach(w => w.classList.remove('visible'));
   if(window.innerWidth > 768) {
@@ -824,6 +514,7 @@ window.goHome = function() {
   document.querySelectorAll('.icon').forEach(i => i.classList.remove('selected'));
 };
 
+// Clock Logic
 function updateClock() {
   const now = new Date();
   let h = now.getHours(), m = now.getMinutes();
@@ -834,6 +525,7 @@ function updateClock() {
 updateClock();
 setInterval(updateClock, 10000);
 
+// Calendar Logic
 let calDate = new Date();
 function renderCalendar() {
   const year = calDate.getFullYear();
@@ -861,6 +553,7 @@ document.getElementById('cal-prev').addEventListener('click', () => { calDate.se
 document.getElementById('cal-next').addEventListener('click', () => { calDate.setMonth(calDate.getMonth() + 1); renderCalendar(); });
 renderCalendar();
 
+// Window Management
 let activeWindow = null;
 let zCounter = 200;
 
@@ -886,6 +579,7 @@ function bringToFront(win) {
   activeWindow = win;
 }
 
+// ── DRAGGABLE LOGIC (버그 완벽 수정) ──
 function makeDraggable(el, handleId) {
   const handle = document.getElementById(handleId) || el;
   let isDragging = false, startX, startY, origX, origY;
@@ -896,10 +590,12 @@ function makeDraggable(el, handleId) {
     const rect = el.getBoundingClientRect();
     origX = rect.left; origY = rect.top;
     
+    // 창이 늘어나지 않도록 우측/하단 기준점 초기화
     el.style.right = 'auto';
     el.style.bottom = 'auto';
     el.style.left = origX + 'px';
     el.style.top = origY + 'px';
+
     bringToFront(el);
   };
 
@@ -928,6 +624,7 @@ makeDraggable(document.getElementById('window-resume'), 'titlebar-resume');
 makeDraggable(document.getElementById('widget-notes'));
 makeDraggable(document.getElementById('widget-cal'));
 
+// Window Resize Handle Logic
 document.querySelectorAll('.resize-handle').forEach(handle => {
   const win = handle.closest('.window');
   let isResizing = false, startX, startY, startW, startH;
@@ -953,6 +650,7 @@ document.querySelectorAll('.resize-handle').forEach(handle => {
   document.addEventListener('touchend', () => { isResizing = false; });
 });
 
+// Icon Click & Mobile View Support
 window.handleIconClick = function(el, windowId) {
   document.querySelectorAll('.icon').forEach(i => i.classList.remove('selected'));
   el.classList.add('selected');
