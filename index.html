@@ -3,329 +3,300 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>jihyeon — portfolio (XP Edition)</title>
-<link href="https://fonts.googleapis.com/css2?family=Tahoma:wght@400;700&display=swap" rel="stylesheet">
+<title>Jihyeon — Win98 Fluid Portfolio (1.5x Scale)</title>
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
+  /* 윈도우 98 픽셀 폰트 감성 (1.5배 확대 적용) */
+  * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Tahoma', 'MS Sans Serif', sans-serif; }
 
   body {
-    font-family: 'Tahoma', 'Trebuchet MS', sans-serif;
-    width: 100vw;
-    height: 100vh;
+    width: 100vw; height: 100vh;
     overflow: hidden;
-    background: #000;
+    background: #000000; /* 쉐이더 베이스 컬러로 로딩 전 화면 맞춤 */
     cursor: default;
     user-select: none;
-    perspective: 1000px; /* 3D 효과를 위한 원근감 설정 */
   }
 
-  /* ── 3D BACKGROUND ── */
-  #bg-container {
+  /* ── 3D FLUID BACKGROUND CANVAS ── */
+  #webgl-canvas {
     position: fixed;
-    /* 화면 바깥으로 여백을 주어 움직일 때 테두리가 보이지 않게 함 */
-    top: -10%; left: -10%;
-    width: 120%; height: 120%;
-    background: url('faded_gallery-SiAJGyR15Aw-unsplash.jpg') center/cover no-repeat;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
     z-index: 0;
-    will-change: transform;
-    /* 마우스 움직임에 따른 부드러운 전환 효과 */
-    transition: transform 0.15s ease-out; 
   }
 
-  /* ── WINDOWS XP TASKBAR (1.2배 확대) ── */
+  /* ── WINDOWS 98 TASKBAR (1.5배 확대) ── */
   #taskbar {
     position: fixed;
     bottom: 0; left: 0; right: 0;
-    height: 42px; /* 30px -> 42px */
-    background: linear-gradient(to bottom, #245edb 0%, #3f8cf3 9%, #245edb 18%, #245edb 92%, #333 100%);
-    border-top: 1px solid #000;
+    height: 54px;
+    background: #c0c0c0;
+    border-top: 3px solid #fff;
+    box-shadow: inset 0 3px 0 #dfdfdf;
     display: flex;
     align-items: center;
+    padding: 3px 6px;
     z-index: 1000;
   }
 
   .start-btn {
     height: 100%;
-    background: linear-gradient(to bottom, #348234 0%, #3a9e3a 10%, #266b26 100%);
-    color: white;
+    background: #c0c0c0;
+    border: 3px solid;
+    border-color: #fff #808080 #808080 #fff;
+    color: black;
     font-weight: bold;
-    font-style: italic;
-    font-size: 18px; /* 14px -> 18px */
-    padding: 0 20px 0 16px;
+    font-size: 21px;
+    padding: 0 18px;
     display: flex;
     align-items: center;
-    border-radius: 0 12px 12px 0;
-    box-shadow: 2px 0 4px rgba(0,0,0,0.4), inset 1px 1px 2px rgba(255,255,255,0.4);
     cursor: pointer;
   }
-  .start-btn:hover { filter: brightness(1.1); }
-  .start-btn:active { box-shadow: inset 2px 2px 4px rgba(0,0,0,0.5); }
-  .start-logo { margin-right: 8px; font-style: normal; font-size: 20px; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); }
-
-  .taskbar-items {
-    display: flex;
-    flex: 1;
-    padding: 0 12px;
-    gap: 5px;
+  .start-btn:active {
+    border-color: #808080 #fff #fff #808080;
+    padding: 3px 15px 0 21px; 
   }
+  .start-logo { margin-right: 9px; font-size: 24px; font-weight: normal; }
 
+  .taskbar-items { flex: 1; padding: 0 12px; display: flex; gap: 6px; }
+  
   .system-tray {
-    background: linear-gradient(to bottom, #0f8de9 0%, #159cf0 10%, #087cdc 100%);
     height: 100%;
     display: flex;
     align-items: center;
-    padding: 0 16px;
-    border-left: 1px solid #1042af;
-    color: white;
-    font-size: 13px; /* 11px -> 13px */
-    box-shadow: inset 1px 0 1px rgba(255,255,255,0.2);
+    padding: 0 18px;
+    border: 3px solid;
+    border-color: #808080 #fff #fff #808080;
+    font-size: 18px;
+    color: black;
   }
 
   /* ── DESKTOP ── */
   #desktop {
     position: fixed;
-    inset: 0 0 42px 0;
+    inset: 0 0 54px 0;
     z-index: 10;
   }
 
-  /* ── ICONS (1.2배 확대) ── */
+  /* ── DESKTOP ICONS (1.5배 확대) ── */
   .icon {
     position: absolute;
-    width: 90px; /* 76px -> 90px */
+    width: 120px;
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 6px;
     cursor: pointer;
     padding: 6px;
-    border-radius: 3px;
   }
   .icon-img {
-    width: 58px; /* 48px -> 58px */
-    height: 58px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    width: 72px; height: 72px;
+    display: flex; align-items: center; justify-content: center;
   }
-
   .icon-label {
-    font-size: 13px; /* 11px -> 13px */
+    font-size: 18px;
     color: white;
     text-align: center;
-    text-shadow: 1px 1px 2px black;
-    line-height: 1.3;
-    word-break: break-word;
+    padding: 2px 6px;
   }
+  .icon.selected .icon-img { filter: sepia(1) hue-rotate(180deg) saturate(3); }
+  .icon.selected .icon-label { background: #000080; color: white; border: 2px dotted #fff; }
 
-  .icon.selected .icon-img { filter: opacity(0.7) brightness(0.8) drop-shadow(0 0 4px blue); }
-  .icon.selected .icon-label { background: #0b61ff; color: white; padding: 2px 4px; }
-
-  /* ── WINDOW (XP LUNA THEME - 1.2배 확대) ── */
+  /* ── WINDOWS 98 WINDOW (1.5배 확대) ── */
   .window {
     position: absolute;
-    border-radius: 8px 8px 3px 3px;
-    background: #ece9d8;
-    border: 3px solid #0055e5;
-    box-shadow: 3px 3px 12px rgba(0,0,0,0.5);
+    background: #c0c0c0;
+    border: 3px solid;
+    border-color: #dfdfdf #000 #000 #dfdfdf;
+    box-shadow: 2px 2px 0 #000;
     z-index: 100;
-    display: none; /* 디폴트: 숨김 */
+    display: none;
     flex-direction: column;
   }
   .window.visible { display: flex; }
   .window.active { z-index: 200; }
 
   .window-titlebar {
-    height: 34px; /* 28px -> 34px */
-    background: linear-gradient(to bottom, #0058e6 0%, #3a93ff 20%, #288eff 40%, #116df6 100%);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 6px 0 8px;
-    cursor: move;
-  }
-
-  .window.inactive .window-titlebar { background: linear-gradient(to bottom, #7ba2e7 0%, #8db3f8 20%, #7da2eb 40%, #688fdf 100%); }
-  .window.inactive { border-color: #7ba2e7; }
-
-  .window-title {
-    font-size: 15px; /* 13px -> 15px */
-    font-weight: bold;
-    color: white;
-    pointer-events: none;
-    text-shadow: 1px 1px 2px #0f1089;
-  }
-
-  /* XP window controls */
-  .xp-controls { display: flex; gap: 3px; }
-  .xp-btn {
-    width: 25px; height: 25px; /* 21px -> 25px */
-    border: 1px solid white;
-    border-radius: 3px;
-    display: flex; align-items: center; justify-content: center;
-    color: white; font-size: 16px; font-weight: bold;
-    cursor: pointer; box-shadow: inset 0 1px 2px rgba(255,255,255,0.6), 1px 1px 2px rgba(0,0,0,0.3);
-  }
-  .xp-btn-min, .xp-btn-max { background: linear-gradient(to bottom, #4c8cf5, #2b61d6); line-height: 12px; }
-  .xp-btn-close { background: linear-gradient(to bottom, #e8645a, #d82b1e); font-size: 13px; font-family: sans-serif; }
-  .xp-btn:active { box-shadow: inset 1px 1px 3px rgba(0,0,0,0.5); padding-top: 1px; padding-left: 1px; }
-
-  .window-body {
-    flex: 1;
-    background: #ffffff;
-    border: 1px solid #7f9db9;
-    margin: 2px;
-    overflow-y: auto;
-    position: relative;
-  }
-
-  /* Works window interior */
-  .works-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
-    padding: 20px;
-    background: #ffffff;
-  }
-
-  .project-card { border: 1px solid #d0d0d0; cursor: pointer; background: #f8f8f8; }
-  .project-card:hover { border-color: #0b61ff; background: #eff4ff; }
-
-  .project-thumb { height: 120px; background: linear-gradient(135deg, #667eea, #764ba2); display: flex; align-items: center; justify-content: center; font-size: 38px; }
-  .project-thumb.t2 { background: linear-gradient(135deg, #f093fb, #f5576c); }
-  .project-thumb.t3 { background: linear-gradient(135deg, #4facfe, #00f2fe); }
-  .project-thumb.t4 { background: linear-gradient(135deg, #43e97b, #38f9d7); }
-
-  .project-info { padding: 12px; }
-  .project-name { font-size: 14px; font-weight: bold; color: #000; margin-bottom: 4px; }
-  .project-desc { font-size: 13px; color: #555; }
-  .project-tag { display: inline-block; margin-top: 8px; font-size: 12px; padding: 3px 6px; background: #e0e0e0; color: #333; }
-
-  /* Resume window interior */
-  .resume-content { padding: 24px; font-family: 'Tahoma', sans-serif; color: #000; }
-  .resume-header { border-bottom: 2px solid #0055e5; padding-bottom: 12px; margin-bottom: 18px; }
-  .resume-name { font-size: 28px; font-weight: bold; }
-  .resume-role { font-size: 15px; color: #333; margin-top: 4px; }
-  
-  .resume-section { margin-bottom: 18px; }
-  .resume-section-title { font-size: 14px; font-weight: bold; color: #0055e5; background: #ece9d8; padding: 3px 6px; margin-bottom: 10px; border: 1px solid #d0d0d0;}
-  .resume-item { margin-bottom: 12px; }
-  .resume-item-title { font-size: 14px; font-weight: bold; }
-  .resume-item-date { float: right; font-size: 13px; color: #666; }
-  .resume-item-sub { font-size: 13px; color: #444; }
-  .resume-item-desc { font-size: 13px; color: #222; margin-top: 4px; line-height: 1.4; }
-  
-  .skill-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
-  .skill-tag { font-size: 13px; padding: 3px 8px; border: 1px solid #aaa; background: #eee; }
-
-  /* ── WIDGETS (1.2배 확대) ── */
-  .widget {
-    position: absolute;
-    border-radius: 4px;
-    overflow: hidden;
-    background: #ffffe1; 
-    border: 1px solid #000;
-    box-shadow: 2px 2px 6px rgba(0,0,0,0.5);
-    z-index: 50;
-    cursor: move;
-  }
-
-  .widget-titlebar {
-    height: 22px;
+    height: 36px;
     background: #000080;
     display: flex;
     align-items: center;
-    padding: 0 6px;
     justify-content: space-between;
+    padding: 0 6px;
+    cursor: move;
+    margin: 3px 3px 0 3px;
   }
-  .widget-title-text { font-size: 12px; color: white; font-weight: bold; }
-  .widget-close { width: 14px; height: 14px; background: #d4d0c8; border: 1px solid white; font-size: 11px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-weight: bold; }
+  .window.inactive .window-titlebar { background: #808080; }
 
-  /* Notes */
-  .notes-body { padding: 10px; min-height: 150px; }
-  .notes-lines { font-size: 14px; line-height: 1.5; font-family: 'Comic Sans MS', cursive; background: transparent; border: none; outline: none; width: 100%; height: 130px; resize: none; color: #000;}
+  .window-title {
+    font-size: 18px;
+    font-weight: bold;
+    color: white;
+    pointer-events: none;
+    margin-left: 6px;
+    letter-spacing: 0.5px;
+  }
 
-  /* Calendar */
-  .cal-body { background: white; padding: 10px; min-width: 220px; border-top: 1px solid #000; }
-  .cal-header { display: flex; justify-content: space-between; margin-bottom: 6px; color: black; font-weight: bold; font-size: 13px; }
-  .cal-nav { cursor: pointer; padding: 0 6px; }
-  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; background: #eee; border: 1px solid #ccc; }
-  .cal-day-name { font-size: 12px; text-align: center; background: #d4d0c8; color: black; padding: 3px 0; }
-  .cal-day { font-size: 13px; text-align: center; background: white; padding: 5px 0; cursor: pointer; color: black; }
-  .cal-day:hover { background: #0055e5; color: white; }
-  .cal-day.today { border: 1px solid #e81123; font-weight: bold; }
-  .cal-day.empty { background: #f5f5f5; color: transparent; cursor: default; }
+  .win98-controls { display: flex; gap: 3px; }
+  .w-btn {
+    width: 27px; height: 27px;
+    background: #c0c0c0;
+    border: 3px solid;
+    border-color: #dfdfdf #808080 #808080 #dfdfdf;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px; font-weight: bold; color: black; cursor: pointer;
+  }
+  .w-btn:active { border-color: #808080 #dfdfdf #dfdfdf #808080; padding: 1px 0 0 1px; }
 
-  /* resize handle */
+  .window-body {
+    flex: 1;
+    overflow-y: auto;
+    margin: 6px;
+    padding: 12px;
+    background: #fff;
+    border: 3px solid;
+    border-color: #808080 #dfdfdf #dfdfdf #808080;
+    position: relative;
+    color: black;
+  }
+
+  /* Scrollbar (1.5배 확대) */
+  ::-webkit-scrollbar { width: 24px; background: #dfdfdf; border-left: 1px solid #fff; }
+  ::-webkit-scrollbar-thumb { background: #c0c0c0; border: 3px solid; border-color: #fff #808080 #808080 #fff; }
+
+  /* Works Grid */
+  .works-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; padding: 12px; }
+  .project-card {
+    background: #c0c0c0;
+    border: 3px solid; border-color: #dfdfdf #808080 #808080 #dfdfdf;
+    cursor: pointer;
+  }
+  .project-card:active { border-color: #808080 #dfdfdf #dfdfdf #808080; }
+  .project-thumb { height: 150px; display: flex; align-items: center; justify-content: center; font-size: 48px; background: #000080; color: white; border-bottom: 3px solid #808080;}
+  .project-info { padding: 12px; }
+  .project-name { font-size: 20px; font-weight: bold; margin-bottom: 6px; }
+  .project-desc { font-size: 17px; color: #333; line-height: 1.4; }
+
+  /* Resume Content */
+  .resume-content { padding: 18px; }
+  .resume-header { border-bottom: 2px dashed #808080; padding-bottom: 24px; margin-bottom: 24px; }
+  .resume-name { font-size: 36px; font-weight: bold; margin-bottom: 6px; }
+  .resume-role { font-size: 21px; color: #333; }
+  .resume-section { margin-bottom: 30px; }
+  .resume-section-title { font-size: 20px; font-weight: bold; color: #000080; background: #c0c0c0; padding: 3px 6px; border: 2px solid #808080; margin-bottom: 15px; display: inline-block; }
+  .resume-item { margin-bottom: 18px; }
+  .resume-item-title { font-size: 20px; font-weight: bold; }
+  .resume-item-date { float: right; font-size: 17px; color: #666; }
+  .resume-item-sub { font-size: 18px; color: #444; margin-top: 3px; }
+  .resume-item-desc { font-size: 18px; color: #333; margin-top: 6px; line-height: 1.5; }
+
+  /* ── WIN98 WIDGETS (1.5배 확대) ── */
+  .widget {
+    position: absolute;
+    background: #c0c0c0;
+    border: 3px solid;
+    border-color: #dfdfdf #000 #000 #dfdfdf;
+    z-index: 50;
+    cursor: move;
+  }
+  .widget-titlebar {
+    height: 27px; background: #000080; color: white; display: flex; align-items: center; justify-content: space-between; padding: 0 6px; margin: 3px;
+  }
+  .widget-title-text { font-size: 17px; font-weight: bold; }
+  .widget-close-btn {
+    width: 21px; height: 21px; background: #c0c0c0; border: 3px solid; border-color: #dfdfdf #808080 #808080 #dfdfdf; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: bold; color: black; cursor: pointer;
+  }
+  .widget-close-btn:active { border-color: #808080 #dfdfdf #dfdfdf #808080; }
+  
+  .notes-body { margin: 3px; border: 3px solid; border-color: #808080 #fff #fff #808080; background: #ffffcc; padding: 12px;}
+  .notes-lines { font-size: 20px; line-height: 1.5; font-family: 'Comic Sans MS', cursive; background: transparent; border: none; outline: none; width: 270px; height: 180px; resize: none; color: black;}
+
+  .cal-body { margin: 3px; background: #fff; padding: 12px; width: 330px; border: 3px solid; border-color: #808080 #fff #fff #808080;}
+  .cal-header { display: flex; justify-content: space-between; margin-bottom: 12px; font-weight: bold; font-size: 20px; color: black; }
+  .cal-nav { cursor: pointer; color: black; background: #dfdfdf; padding: 0 6px; border: 2px solid #808080; }
+  .cal-nav:active { border-color: #000; background: #c0c0c0; }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; background: #c0c0c0; border: 2px solid #808080; }
+  .cal-day-name { font-size: 17px; text-align: center; background: #dfdfdf; color: black; padding: 3px 0; }
+  .cal-day { font-size: 18px; text-align: center; padding: 6px 0; cursor: pointer; background: white; color: black;}
+  .cal-day:hover { background: #000080; color: white; }
+  .cal-day.today { border: 2px dashed #000080; font-weight: bold; }
+  .cal-day.empty { background: #fff; color: transparent; cursor: default; }
+
   .resize-handle {
-    position: absolute; bottom: 0; right: 0; width: 14px; height: 14px; cursor: se-resize;
-    background: repeating-linear-gradient(135deg, transparent, transparent 2px, #aaa 2px, #aaa 3px);
+    position: absolute; bottom: 3px; right: 3px; width: 21px; height: 21px; cursor: se-resize;
+    background: repeating-linear-gradient(135deg, transparent, transparent 3px, #808080 3px, #808080 4.5px);
+    z-index: 10;
   }
 
   /* ── MOBILE RESPONSIVE ── */
   @media (max-width: 768px) {
     .widget { display: none !important; }
-    .window {
-      width: 94vw !important;
-      height: 85vh !important;
-      left: 3vw !important;
-      top: 3vh !important;
-      min-width: 0;
-    }
+    .window { width: 94vw !important; height: 85vh !important; left: 3vw !important; top: 5vh !important; }
     .works-grid { grid-template-columns: 1fr; }
-    #taskbar { height: 48px; }
-    .start-btn { font-size: 18px; padding: 0 20px 0 16px; }
+    #taskbar { height: 66px; }
+    .start-btn { font-size: 24px; padding: 0 24px; }
   }
+/* Resume 전용 뷰어 스타일 */
+  #window-resume .window-body {
+    background: #808080; /* 문서 뷰어 특유의 회색 배경 */
+    padding: 30px 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px; /* 페이지 사이 간격 */
+  }
+
+  .resume-page {
+    background: white;
+    width: 100%;
+    max-width: 620px; /* A4 가로 폭 느낌 */
+    min-height: 876px; /* A4 세로 비율 (620 * 1.414) */
+    aspect-ratio: 1 / 1.414;
+    box-shadow: 8px 8px 0px rgba(0, 0, 0, 0.2); /* 윈도우 특유의 각진 그림자 */
+    padding: 60px;
+    box-sizing: border-box;
+    position: relative;
+  }
+
+  /* 페이지 내부 텍스트 조정 */
+  .resume-page .resume-header { border-bottom: 2px solid #000; }
+  .resume-page .resume-section-title { background: #eee; border: 1px solid #000; }
 </style>
+
+<script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.160.0/build/three.module.js"
+    }
+  }
+</script>
 </head>
 <body>
 
-<div id="bg-container"></div>
+<canvas id="webgl-canvas"></canvas>
 
 <div id="desktop">
 
-  <div class="icon" style="left:24px; top:24px" id="icon-works" onclick="handleIconClick(this, 'works')">
+  <div class="icon" style="left:30px; top:30px" onclick="handleIconClick(this, 'works')">
     <div class="icon-img">
-      <svg viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <rect x="4" y="8" width="44" height="34" rx="2" fill="url(#folderGradXP)" />
-        <rect x="4" y="14" width="44" height="28" rx="2" fill="url(#folderBodyXP)" />
-        <rect x="4" y="8" width="22" height="8" rx="2" fill="url(#tabGradXP)" />
-        <defs>
-          <linearGradient id="folderGradXP" x1="26" y1="8" x2="26" y2="42" gradientUnits="userSpaceOnUse">
-            <stop offset="0%" stop-color="#ffdd75"/>
-            <stop offset="100%" stop-color="#e5a910"/>
-          </linearGradient>
-          <linearGradient id="folderBodyXP" x1="26" y1="14" x2="26" y2="42" gradientUnits="userSpaceOnUse">
-            <stop offset="0%" stop-color="#ffe999"/>
-            <stop offset="100%" stop-color="#f5c225"/>
-          </linearGradient>
-          <linearGradient id="tabGradXP" x1="14" y1="8" x2="14" y2="16" gradientUnits="userSpaceOnUse">
-            <stop offset="0%" stop-color="#ffcc40"/>
-            <stop offset="100%" stop-color="#db9c00"/>
-          </linearGradient>
-        </defs>
+     <img src="./directory_closed-4.png" alt="Works Icon" style="width: 100%; height: 100%; object-fit: contain;">
+        <path d="M4 10 h14 l4 4 h22 v24 h-40 z" fill="#ffcc00" stroke="black" stroke-width="1.5"/>
+        <path d="M4 18 h40 v16 h-40 z" fill="#ffe066" stroke="black" stroke-width="1.5"/>
       </svg>
     </div>
     <span class="icon-label">Works</span>
   </div>
 
-  <div class="icon" style="left:24px; top:120px" id="icon-resume" onclick="handleIconClick(this, 'resume')">
+  <div class="icon" style="left:30px; top:165px" onclick="handleIconClick(this, 'resume')">
     <div class="icon-img">
-      <svg viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <rect x="10" y="4" width="32" height="44" fill="#ffffff" stroke="#0b61ff" stroke-width="2"/>
-        <rect x="16" y="12" width="20" height="2" fill="#000000"/>
-        <rect x="16" y="18" width="16" height="2" fill="#000000"/>
-        <rect x="16" y="24" width="20" height="2" fill="#000000"/>
-        <rect x="16" y="30" width="14" height="2" fill="#000000"/>
-        <path d="M30 4 L42 16 L30 16 Z" fill="#0b61ff"/>
-      </svg>
+  <img src="./midi_bl-2.png" alt="Resume Icon" style="width: 100%; height: 100%; object-fit: contain;">
     </div>
-    <span class="icon-label">Resume / CV</span>
+    <span class="icon-label">Resume_CV</span>
   </div>
 
-  <div class="widget" id="widget-notes" style="right:30px; top:40px; width:240px; display:block;">
+  <div class="widget" id="widget-notes" style="right:60px; top:60px; display:block;">
     <div class="widget-titlebar" id="wt-notes">
       <span class="widget-title-text">Sticky Note</span>
-      <div class="widget-close" onclick="closeWidget('widget-notes', event)">x</div>
+      <div class="widget-close-btn" onclick="closeWidget('widget-notes', event)">X</div>
     </div>
     <div class="notes-body">
       <textarea class="notes-lines" spellcheck="false">jihyeon — designer
@@ -337,10 +308,10 @@ healing aesthetics ✦
     </div>
   </div>
 
-  <div class="widget" id="widget-cal" style="right:30px; top:250px; display:block;">
+  <div class="widget" id="widget-cal" style="right:260px; top:240px; display:block;">
     <div class="widget-titlebar" id="wt-cal">
       <span class="widget-title-text">Calendar</span>
-      <div class="widget-close" onclick="closeWidget('widget-cal', event)">x</div>
+      <div class="widget-close-btn" onclick="closeWidget('widget-cal', event)">X</div>
     </div>
     <div class="cal-body">
       <div class="cal-header">
@@ -352,13 +323,13 @@ healing aesthetics ✦
     </div>
   </div>
 
-  <div class="window" id="window-works" style="left:150px; top:60px; width:600px; height:450px;">
+  <div class="window" id="window-works" style="width:810px; height:630px;">
     <div class="window-titlebar" id="titlebar-works">
       <span class="window-title">Works</span>
-      <div class="xp-controls">
-        <div class="xp-btn xp-btn-min">_</div>
-        <div class="xp-btn xp-btn-max">□</div>
-        <div class="xp-btn xp-btn-close" onmousedown="closeWindow('works'); event.stopPropagation();">X</div>
+      <div class="win98-controls">
+        <div class="w-btn">_</div>
+        <div class="w-btn">☐</div>
+        <div class="w-btn" onmousedown="closeWindow('works'); event.stopPropagation();">X</div>
       </div>
     </div>
     <div class="window-body">
@@ -368,31 +339,27 @@ healing aesthetics ✦
           <div class="project-info">
             <div class="project-name">Mood Diary App</div>
             <div class="project-desc">Music-based healing journal with generative aesthetics</div>
-            <span class="project-tag">UX · Mobile</span>
           </div>
         </div>
         <div class="project-card">
-          <div class="project-thumb t2">🌿</div>
+          <div class="project-thumb">🌿</div>
           <div class="project-info">
             <div class="project-name">Wellbeing Dashboard</div>
             <div class="project-desc">Daily check-in system with minimal visual language</div>
-            <span class="project-tag">Product · UI</span>
           </div>
         </div>
         <div class="project-card">
-          <div class="project-thumb t3">✦</div>
+          <div class="project-thumb">✦</div>
           <div class="project-info">
             <div class="project-name">Portfolio v1</div>
             <div class="project-desc">Interactive web portfolio with cosmic theme</div>
-            <span class="project-tag">Web · Motion</span>
           </div>
         </div>
         <div class="project-card">
-          <div class="project-thumb t4">📐</div>
+          <div class="project-thumb">📐</div>
           <div class="project-info">
             <div class="project-name">Design System</div>
             <div class="project-desc">Component library with Figma + code handoff</div>
-            <span class="project-tag">Systems</span>
           </div>
         </div>
       </div>
@@ -400,117 +367,244 @@ healing aesthetics ✦
     </div>
   </div>
 
-  <div class="window" id="window-resume" style="left:200px; top:100px; width:540px; height:600px;">
+ <div class="window" id="window-resume" style="width:720px; height:92vh;">
     <div class="window-titlebar" id="titlebar-resume">
-      <span class="window-title">Resume / CV.doc - Microsoft Word</span>
-      <div class="xp-controls">
-        <div class="xp-btn xp-btn-min">_</div>
-        <div class="xp-btn xp-btn-max">□</div>
-        <div class="xp-btn xp-btn-close" onmousedown="closeWindow('resume'); event.stopPropagation();">X</div>
+      <span class="window-title">Resume.doc - Microsoft Word</span>
+      <div class="win98-controls">
+        <div class="w-btn">_</div>
+        <div class="w-btn">☐</div>
+        <div class="w-btn" onmousedown="closeWindow('resume'); event.stopPropagation();">X</div>
       </div>
     </div>
     <div class="window-body">
-      <div class="resume-content">
+      
+      <div class="resume-page">
         <div class="resume-header">
-          <div class="resume-name">Jihyeon</div>
-          <div class="resume-role">UI/UX Designer · App Designer</div>
-          <div style="font-size:13px; color:#666; margin-top:6px;">Seoul, Korea → Vancouver, BC &nbsp;|&nbsp; your@email.com</div>
-        </div>
-
-        <div class="resume-section">
-          <div class="resume-section-title">About</div>
-          <div style="font-size:13px; line-height:1.6;">
-            Designer with a healing-aesthetic sensibility, bridging emotional experience and functional interface design. Passionate about mobile apps, AI-assisted design workflows, and meaningful digital experiences.
+          <div class="resume-name">이지현</div>
+          <div class="resume-role">UI/UX Designer · Art Director</div>
+          <div style="font-size:16px; color:#444; margin-top:12px;">
+            Seoul → Vancouver, BC | jihyeon@email.com
           </div>
         </div>
 
-        <div class="resume-section">
+        <div class="resume-section" style="margin-top:40px;">
           <div class="resume-section-title">Experience</div>
           <div class="resume-item">
-            <div>
-              <span class="resume-item-title">UI/UX Designer</span>
-              <span class="resume-item-date">2022 — Present</span>
+            <span class="resume-item-title">UI/UX Designer</span>
+            <span class="resume-item-date">2022.05 — Present</span>
+            <div class="resume-item-sub">Yes24 · Seoul, Korea</div>
+            <div class="resume-item-desc">
+              도서 플랫폼 UI 개선 및 디자인 시스템 구축. <br>
+              사용자 경험 최적화를 위한 모바일 앱 인터페이스 설계.
             </div>
-            <div class="resume-item-sub">Company Name · Seoul</div>
-            <div class="resume-item-desc">Product design for mobile apps, design system building, Figma-to-code workflow.</div>
           </div>
           <div class="resume-item">
-            <div>
-              <span class="resume-item-title">Visual Designer</span>
-              <span class="resume-item-date">2020 — 2022</span>
-            </div>
-            <div class="resume-item-sub">Studio Name · Seoul</div>
-            <div class="resume-item-desc">Brand identity, illustration, digital publication design.</div>
-          </div>
-        </div>
-
-        <div class="resume-section">
-          <div class="resume-section-title">Skills</div>
-          <div class="skill-tags">
-            <span class="skill-tag">Figma</span>
-            <span class="skill-tag">Framer</span>
-            <span class="skill-tag">iOS Design</span>
-            <span class="skill-tag">Design Systems</span>
-            <span class="skill-tag">HTML/CSS</span>
-            <span class="skill-tag">Prototyping</span>
-          </div>
-        </div>
-
-        <div class="resume-section">
-          <div class="resume-section-title">Education</div>
-          <div class="resume-item">
-            <div>
-              <span class="resume-item-title">Visual Communication Design</span>
-              <span class="resume-item-date">2016 — 2020</span>
-            </div>
-            <div class="resume-item-sub">University Name</div>
+            <span class="resume-item-title">Junior Designer</span>
+            <span class="resume-item-date">2020.03 — 2022.04</span>
+            <div class="resume-item-sub">Design Agency · Seoul</div>
+            <div class="resume-item-desc">스타트업 브랜딩 및 전시회 비주얼 아이덴티티 디자인 가이드 제작.</div>
           </div>
         </div>
       </div>
-      <div class="resize-handle"></div>
+
+      <div class="resume-page">
+        <div class="resume-section">
+          <div class="resume-section-title">Education</div>
+          <div class="resume-item">
+            <span class="resume-item-title">서울과학기술대학교</span>
+            <span class="resume-item-date">2014 — 2020</span>
+            <div class="resume-item-sub">시각디자인전공 학사 졸업</div>
+          </div>
+        </div>
+
+        <div class="resume-section" style="margin-top:40px;">
+          <div class="resume-section-title">Skills & Tools</div>
+          <div style="font-size:18px; line-height:2; color:#333;">
+            • <b>Design:</b> UI/UX, Interaction, Branding, Typography<br>
+            • <b>Tools:</b> Figma, Adobe Creative Suite (Ps, Ai, Id), Protopie<br>
+            • <b>Soft Skills:</b> Creative Problem Solving, English Communication
+          </div>
+        </div>
+
+        <div class="resume-section" style="margin-top:40px;">
+          <div class="resume-section-title">Vision</div>
+          <div style="font-size:17px; line-height:1.6; color:#444;">
+            감성적인 미학과 기능적인 인터페이스의 조화를 추구합니다. 
+            단순한 도구를 넘어 사용자에게 치유와 영감을 주는 디지털 경험을 설계하는 독립적인 아트 디렉터를 꿈꿉니다.
+          </div>
+        </div>
+        
+        <div style="position:absolute; bottom:30px; left:50%; transform:translateX(-50%); font-size:14px; color:#888;">- 2 -</div>
+      </div>
+
     </div>
   </div>
 
-</div>
-
 <div id="taskbar">
   <div class="start-btn" onclick="goHome()">
-    <span class="start-logo">⊞</span> HOME
+   <img src="./windows-0.png" alt="Start" class="start-logo" style="width: 28px; height: 28px; object-fit: contain;">
+    HOME
   </div>
   <div class="taskbar-items">
-  </div>
+    </div>
   <div class="system-tray">
     <span id="clock">12:00 AM</span>
   </div>
 </div>
 
-<script>
-// ── BACKGROUND 3D PARALLAX ANIMATION ──
-const bg = document.getElementById('bg-container');
-document.addEventListener('mousemove', (e) => {
-  // 화면 중앙을 0으로 잡고 마우스 위치에 따라 X, Y값을 구함
-  const x = (e.clientX / window.innerWidth - 0.5) * 40; 
-  const y = (e.clientY / window.innerHeight - 0.5) * 40;
-  // 반대 방향으로 미세하게 이동하고 살짝 기울여 3D 공간감을 줌
-  bg.style.transform = `translate(${-x}px, ${-y}px) rotateX(${y * 0.1}deg) rotateY(${x * 0.1}deg) scale(1.05)`;
-});
+<script type="module">
+  // ── THREE.JS CUSTOM LIQUID GRADIENT SHADER ──
+  import * as THREE from 'three';
 
-// ── HOME BUTTON (Reset to Default State) ──
-function goHome() {
-  // 1. 열려있는 모든 창 닫기
+  const canvas = document.getElementById('webgl-canvas');
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, alpha: true });
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+  const geometry = new THREE.PlaneGeometry(2, 2);
+
+  const vertexShader = `
+    varying vec2 vUv;
+    void main() {
+      vUv = uv;
+      gl_Position = vec4(position, 1.0);
+    }
+  `;
+
+  const fragmentShader = `
+    uniform float uTime;
+    uniform vec2 uResolution;
+    uniform vec2 uMouse; // 마우스 좌표 변수 추가
+    
+    uniform vec3 c1;
+    uniform vec3 c2;
+    uniform vec3 c3;
+    uniform vec3 c4;
+
+    varying vec2 vUv;
+// 🔥 1. 여기에 랜덤 노이즈 생성 함수를 추가합니다!
+    float random(vec2 st) {
+      return fract(sin(dot(st.xy, vec2(12.9898,78.233))) * 43758.5453123);
+    }
+    void main() {
+      vec2 p = vUv * 2.0 - 1.0;
+      p.x *= uResolution.x / uResolution.y;
+
+      // 마우스 좌표를 화면 비율에 맞게 보정
+      vec2 m = uMouse * 2.0 - 1.0;
+      m.x *= uResolution.x / uResolution.y;
+
+      float t = uTime * 0.4;
+
+      // 마우스 커서와의 거리 계산 (가까울수록 왜곡이 강해짐)
+      float distToMouse = length(p - m);
+      float mouseEffect = exp(-distToMouse * 1.0); // 2.5는 마우스 영향력의 반경 조절값
+
+      vec2 offset = p;
+      
+      // 마우스가 그라데이션을 부드럽게 밀어내는 효과 추가
+      vec2 mouseDelta = p - m;
+      offset -= mouseDelta * mouseEffect * 2.0; // 0.8은 밀어내는 힘의 강도
+
+      // 기존 유체 애니메이션 노이즈
+      offset.x += sin(p.y * 1.5 + t) * 0.4;
+      offset.y += cos(p.x * 1.5 + t * 0.8) * 0.4;
+
+      float n1 = sin(offset.x * 1.5 + t) * cos(offset.y * 1.5 - t);
+      float n2 = sin(offset.x * 2.0 - t * 0.5) * cos(offset.y * 2.0 + t * 0.5);
+
+      vec3 col = mix(c2, c1, smoothstep(-1.0, 1.0, n1));
+      col = mix(col, c4, smoothstep(-0.5, 1.0, n2));
+      col = mix(col, c3, smoothstep(0.2, 1.0, n1 * n2));
+
+     // float dist = length(vUv - 0.5);
+     // col -= dist * 0.3;
+
+// 🔥 2. 최종 색상 출력 직전에 노이즈를 계산해서 더해줍니다!
+      // uTime을 곱해줘서 화면이 멈춰있지 않고 필름처럼 계속 지글거리게 만듭니다.
+      float noise = random(vUv * uTime);
+      col += (noise - 0.5) * 0.08; // 0.08이 노이즈의 강도입니다.
+
+      gl_FragColor = vec4(col, 1.0);
+    }
+  `;
+
+  const material = new THREE.ShaderMaterial({
+    vertexShader,
+    fragmentShader,
+    uniforms: {
+      uTime: { value: 0 },
+      uResolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
+      uMouse: { value: new THREE.Vector2(0.5, 0.5) }, // 마우스 초기값을 화면 중앙으로 설정
+      c1: { value: new THREE.Color('#1befbb') },
+      c2: { value: new THREE.Color('#72e3ff') },
+      c3: { value: new THREE.Color('#3d34f3') },
+      c4: { value: new THREE.Color('#880ae9') }
+    }
+  });
+
+  const plane = new THREE.Mesh(geometry, material);
+  scene.add(plane);
+
+  // 마우스 위치 추적 변수 (부드러운 움직임을 위해 target과 현재값을 분리)
+  const mouse = new THREE.Vector2(0.5, 0.5);
+  const targetMouse = new THREE.Vector2(0.5, 0.5);
+
+  // PC 마우스 움직임 추적
+  window.addEventListener('mousemove', (e) => {
+    targetMouse.x = e.clientX / window.innerWidth;
+    targetMouse.y = 1.0 - (e.clientY / window.innerHeight); // WebGL은 y축이 반대이므로 뒤집어줍니다.
+  });
+
+  // 모바일 터치 움직임 추적
+  window.addEventListener('touchmove', (e) => {
+// 768px 미만일 때는 터치로 인한 배경 왜곡을 무시합니다.
+    if (window.innerWidth < 768) return;
+
+    targetMouse.x = e.touches[0].clientX / window.innerWidth;
+    targetMouse.y = 1.0 - (e.touches[0].clientY / window.innerHeight);
+  }, { passive: true });
+
+  const clock = new THREE.Clock();
+  function animate() {
+    requestAnimationFrame(animate);
+    material.uniforms.uTime.value = clock.getElapsedTime();
+    
+    if (window.innerWidth < 768) {
+      // 모바일일 때는 왜곡 중심을 화면 중앙으로 서서히 되돌립니다.
+      targetMouse.set(0.5, 0.5);
+      mouse.lerp(targetMouse, 0.02); // 아주 천천히 중앙으로 복귀
+    } else {
+      // 데스크탑일 때는 기존처럼 마우스를 부드럽게 추적합니다.
+      mouse.lerp(targetMouse, 0.15); 
+    }
+    
+    material.uniforms.uMouse.value.copy(mouse);
+    renderer.render(scene, camera);
+  }
+  animate();
+
+  window.addEventListener('resize', () => {
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    material.uniforms.uResolution.value.set(window.innerWidth, window.innerHeight);
+  });
+</script>
+<script>
+// ── UI LOGIC ──
+
+// HOME Button Logic
+window.goHome = function() {
   document.querySelectorAll('.window').forEach(w => w.classList.remove('visible'));
-  
-  // 2. 위젯 다시 띄우기 (PC에서만)
   if(window.innerWidth > 768) {
     document.getElementById('widget-notes').style.display = 'block';
     document.getElementById('widget-cal').style.display = 'block';
   }
-  
-  // 3. 바탕화면 아이콘 선택 해제
   document.querySelectorAll('.icon').forEach(i => i.classList.remove('selected'));
-}
+};
 
-// ── CLOCK ──
+// Clock Logic
 function updateClock() {
   const now = new Date();
   let h = now.getHours(), m = now.getMinutes();
@@ -521,7 +615,7 @@ function updateClock() {
 updateClock();
 setInterval(updateClock, 10000);
 
-// ── CALENDAR ──
+// Calendar Logic
 let calDate = new Date();
 function renderCalendar() {
   const year = calDate.getFullYear();
@@ -531,27 +625,17 @@ function renderCalendar() {
   document.getElementById('cal-month-label').textContent = `${monthNames[month]} ${year}`;
   const grid = document.getElementById('cal-grid');
   grid.innerHTML = '';
-
-  ['Su','Mo','Tu','We','Th','Fr','Sa'].forEach(d => {
-    const el = document.createElement('div');
-    el.className = 'cal-day-name';
-    el.textContent = d;
-    grid.appendChild(el);
+  ['S','M','T','W','T','F','S'].forEach(d => {
+    const el = document.createElement('div'); el.className = 'cal-day-name'; el.textContent = d; grid.appendChild(el);
   });
-
   const firstDay = new Date(year, month, 1).getDay();
   const daysInMonth = new Date(year, month+1, 0).getDate();
-
   for (let i = 0; i < firstDay; i++) {
-    const el = document.createElement('div');
-    el.className = 'cal-day empty'; el.textContent = '.'; grid.appendChild(el);
+    const el = document.createElement('div'); el.className = 'cal-day empty'; el.textContent = '.'; grid.appendChild(el);
   }
   for (let d = 1; d <= daysInMonth; d++) {
-    const el = document.createElement('div');
-    el.className = 'cal-day'; el.textContent = d;
-    if (d === today.getDate() && month === today.getMonth() && year === today.getFullYear()) {
-      el.classList.add('today');
-    }
+    const el = document.createElement('div'); el.className = 'cal-day'; el.textContent = d;
+    if (d === today.getDate() && month === today.getMonth() && year === today.getFullYear()) el.classList.add('today');
     grid.appendChild(el);
   }
 }
@@ -559,112 +643,97 @@ document.getElementById('cal-prev').addEventListener('click', () => { calDate.se
 document.getElementById('cal-next').addEventListener('click', () => { calDate.setMonth(calDate.getMonth() + 1); renderCalendar(); });
 renderCalendar();
 
-// ── WINDOW MANAGEMENT ──
+// Window Management
 let activeWindow = null;
 let zCounter = 200;
 
-function openWindow(id) {
+window.openWindow = function(id) {
   const win = document.getElementById('window-' + id);
   win.classList.add('visible');
+  
+// 🔥 여기에 스크롤 초기화 코드를 추가합니다!
+  const windowBody = win.querySelector('.window-body');
+  if (windowBody) {
+    windowBody.scrollTop = 0; // 스크롤을 맨 위(0)로 리셋
+  }
+  
+  // 크기 및 위치 계산 (이전에 적용하신 1, 2번 방법)
+  const winWidth = win.offsetWidth;
+  const winHeight = win.offsetHeight;
+  const taskbarHeight = 54; 
+
+  const centerX = (window.innerWidth - winWidth) / 2;
+  const centerY = (window.innerHeight - taskbarHeight - winHeight) / 2;
+
+  win.style.left = Math.max(0, centerX) + 'px';
+  win.style.top = Math.max(0, centerY) + 'px';
+  
+  // 창을 맨 앞으로 가져오기
   bringToFront(win);
-}
+};
 
-function closeWindow(id) {
-  const win = document.getElementById('window-' + id);
-  win.classList.remove('visible');
-}
+window.closeWindow = function(id) {
+  document.getElementById('window-' + id).classList.remove('visible');
+};
 
-function closeWidget(id, event) {
+window.closeWidget = function(id, event) {
   document.getElementById(id).style.display = 'none';
   if(event) event.stopPropagation();
-}
+};
 
 function bringToFront(win) {
-  if (activeWindow && activeWindow !== win) {
-    activeWindow.classList.add('inactive');
-    activeWindow.classList.remove('active');
-  }
-  win.classList.remove('inactive');
+  if (activeWindow && activeWindow !== win) activeWindow.classList.remove('active');
   win.classList.add('active');
   win.style.zIndex = ++zCounter;
   activeWindow = win;
 }
 
-// Draggable Logic
+// ── DRAGGABLE LOGIC (버그 완벽 수정) ──
 function makeDraggable(el, handleId) {
-  const handle = document.getElementById(handleId);
+  const handle = document.getElementById(handleId) || el;
   let isDragging = false, startX, startY, origX, origY;
 
-  handle.addEventListener('mousedown', (e) => {
-    if (e.target.closest('.xp-controls') || e.target.closest('.widget-close')) return;
+  const startDrag = (x, y) => {
     isDragging = true;
-    startX = e.clientX; startY = e.clientY;
+    startX = x; startY = y;
     const rect = el.getBoundingClientRect();
     origX = rect.left; origY = rect.top;
+    
+    // 창이 늘어나지 않도록 우측/하단 기준점 초기화
+    el.style.right = 'auto';
+    el.style.bottom = 'auto';
+    el.style.left = origX + 'px';
+    el.style.top = origY + 'px';
+
     bringToFront(el);
+  };
+
+  handle.addEventListener('mousedown', (e) => {
+    if (e.target.closest('.win98-controls') || e.target.closest('.widget-close-btn') || e.target.tagName === 'TEXTAREA' || e.target.closest('.resize-handle')) return;
+    startDrag(e.clientX, e.clientY); 
     e.preventDefault();
   });
   
   handle.addEventListener('touchstart', (e) => {
-    if (e.target.closest('.xp-controls') || e.target.closest('.widget-close')) return;
-    isDragging = true;
-    startX = e.touches[0].clientX; startY = e.touches[0].clientY;
-    const rect = el.getBoundingClientRect();
-    origX = rect.left; origY = rect.top;
-    bringToFront(el);
+    if (e.target.closest('.win98-controls') || e.target.closest('.widget-close-btn') || e.target.tagName === 'TEXTAREA' || e.target.closest('.resize-handle')) return;
+    startDrag(e.touches[0].clientX, e.touches[0].clientY);
   }, {passive: true});
 
-  document.addEventListener('mousemove', (e) => {
-    if (!isDragging) return;
-    el.style.left = (origX + (e.clientX - startX)) + 'px';
-    el.style.top = (origY + (e.clientY - startY)) + 'px';
-  });
-  
-  document.addEventListener('touchmove', (e) => {
-    if (!isDragging) return;
-    el.style.left = (origX + (e.touches[0].clientX - startX)) + 'px';
-    el.style.top = (origY + (e.touches[0].clientY - startY)) + 'px';
-  }, {passive: true});
-
+  document.addEventListener('mousemove', (e) => { if (isDragging) { el.style.left = (origX + (e.clientX - startX)) + 'px'; el.style.top = (origY + (e.clientY - startY)) + 'px'; } });
+  document.addEventListener('touchmove', (e) => { if (isDragging) { el.style.left = (origX + (e.touches[0].clientX - startX)) + 'px'; el.style.top = (origY + (e.touches[0].clientY - startY)) + 'px'; } }, {passive: true});
   document.addEventListener('mouseup', () => { isDragging = false; });
   document.addEventListener('touchend', () => { isDragging = false; });
-
+  
   el.addEventListener('mousedown', () => bringToFront(el));
   el.addEventListener('touchstart', () => bringToFront(el), {passive:true});
 }
 
 makeDraggable(document.getElementById('window-works'), 'titlebar-works');
 makeDraggable(document.getElementById('window-resume'), 'titlebar-resume');
-makeDraggable(document.getElementById('widget-notes'), 'wt-notes');
-makeDraggable(document.getElementById('widget-cal'), 'wt-cal');
+makeDraggable(document.getElementById('widget-notes'));
+makeDraggable(document.getElementById('widget-cal'));
 
-// ── ICON SELECTION & MOBILE TAP HANDLING ──
-let lastClickTime = 0;
-let lastClickedId = '';
-
-function handleIconClick(el, windowId) {
-  document.querySelectorAll('.icon').forEach(i => i.classList.remove('selected'));
-  el.classList.add('selected');
-  
-  if (window.innerWidth <= 768) {
-    openWindow(windowId);
-  } else {
-    const currentTime = new Date().getTime();
-    if (lastClickedId === windowId && currentTime - lastClickTime < 400) {
-      openWindow(windowId);
-    }
-    lastClickTime = currentTime;
-    lastClickedId = windowId;
-  }
-}
-
-document.getElementById('desktop').addEventListener('click', (e) => {
-  if (!e.target.closest('.icon') && !e.target.closest('.window') && !e.target.closest('.widget')) {
-    document.querySelectorAll('.icon').forEach(i => i.classList.remove('selected'));
-  }
-});
-
-// ── WINDOW RESIZE ──
+// Window Resize Handle Logic
 document.querySelectorAll('.resize-handle').forEach(handle => {
   const win = handle.closest('.window');
   let isResizing = false, startX, startY, startW, startH;
@@ -680,14 +749,27 @@ document.querySelectorAll('.resize-handle').forEach(handle => {
 
   const doResize = (x, y) => {
     if (!isResizing) return;
-    win.style.width = Math.max(300, startW + (x - startX)) + 'px';
-    win.style.height = Math.max(200, startH + (y - startY)) + 'px';
+    win.style.width = Math.max(450, startW + (x - startX)) + 'px';
+    win.style.height = Math.max(300, startH + (y - startY)) + 'px';
   };
 
   document.addEventListener('mousemove', (e) => doResize(e.clientX, e.clientY));
   document.addEventListener('touchmove', (e) => doResize(e.touches[0].clientX, e.touches[0].clientY), {passive: true});
   document.addEventListener('mouseup', () => { isResizing = false; });
   document.addEventListener('touchend', () => { isResizing = false; });
+});
+
+// Icon Click & Mobile View Support
+window.handleIconClick = function(el, windowId) {
+  document.querySelectorAll('.icon').forEach(i => i.classList.remove('selected'));
+  el.classList.add('selected');
+  openWindow(windowId);
+};
+
+document.getElementById('desktop').addEventListener('click', (e) => {
+  if (!e.target.closest('.icon') && !e.target.closest('.window') && !e.target.closest('.widget')) {
+    document.querySelectorAll('.icon').forEach(i => i.classList.remove('selected'));
+  }
 });
 </script>
 </body>
