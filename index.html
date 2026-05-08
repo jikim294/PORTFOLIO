@@ -11,7 +11,7 @@
   body {
     width: 100vw; height: 100vh;
     overflow: hidden;
-    background: #0A0E27;
+    background: #0A0E27; /* 로딩 전 다크 네이비 배경 */
     cursor: default;
     user-select: none;
   }
@@ -412,13 +412,13 @@ healing aesthetics ✦
 <script type="module">
   import * as THREE from 'three';
 
-  // [수정점 1] 터치(마우스 물결) 왜곡이 과도하게 컸던 점을 부드럽게 조정했습니다.
+  // 1. 코드펜 원본 TouchTexture 클래스 (완벽 동일)
   class TouchTexture {
     constructor() {
       this.size = 64;
       this.width = this.height = this.size;
       this.maxAge = 64;
-      this.radius = 0.10 * this.size; // 0.25 -> 0.10 으로 줄여 원형 왜곡 방지
+      this.radius = 0.25 * this.size; 
       this.speed = 1 / this.maxAge;
       this.trail = [];
       this.last = null;
@@ -467,7 +467,7 @@ healing aesthetics ✦
         let d = Math.sqrt(dd);
         vx = dx / d;
         vy = dy / d;
-        force = Math.min(dd * 10000, 1.0); // 20000 -> 10000 강도 하향
+        force = Math.min(dd * 20000, 2.0); 
       }
       this.last = { x: point.x, y: point.y };
       this.trail.push({ x: point.x, y: point.y, age: 0, force, vx, vy });
@@ -496,6 +496,7 @@ healing aesthetics ✦
     }
   }
 
+  // 2. 코드펜 원본 GradientBackground 클래스 (완벽 동일)
   class GradientBackground {
     constructor(sceneManager) {
       this.sceneManager = sceneManager;
@@ -509,12 +510,16 @@ healing aesthetics ✦
         uColor4: { value: new THREE.Color() },
         uColor5: { value: new THREE.Color() },
         uColor6: { value: new THREE.Color() },
-        uSpeed: { value: 0.8 }, // 조금 더 우아하게 흐르도록 조정
+        uSpeed: { value: 1.2 }, 
         uIntensity: { value: 1.8 },
         uTouchTexture: { value: null },
         uGrainIntensity: { value: 0.08 },
+        uZoom: { value: 1.0 }, 
         uDarkNavy: { value: new THREE.Color() },
-        uGradientSize: { value: 1.5 } // [수정점 2] 이 부분이 0.45여서 원형으로 분리되었습니다. 1.5로 대폭 키워 완벽히 섞이게 만듦.
+        uGradientSize: { value: 1.0 }, 
+        uGradientCount: { value: 6.0 },
+        uColor1Weight: { value: 1.0 },
+        uColor2Weight: { value: 1.0 }
       };
     }
     init() {
@@ -523,101 +528,160 @@ healing aesthetics ✦
       const material = new THREE.ShaderMaterial({
         uniforms: this.uniforms,
         vertexShader: `
-          varying vec2 vUv;
-          void main() {
-            vec3 pos = position.xyz;
-            gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.);
-            vUv = uv;
-          }
-        `,
+            varying vec2 vUv;
+            void main() {
+              vec3 pos = position.xyz;
+              gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.);
+              vUv = uv;
+            }
+          `,
         fragmentShader: `
-          uniform float uTime;
-          uniform vec2 uResolution;
-          uniform vec3 uColor1;
-          uniform vec3 uColor2;
-          uniform vec3 uColor3;
-          uniform vec3 uColor4;
-          uniform vec3 uColor5;
-          uniform vec3 uColor6;
-          uniform float uSpeed;
-          uniform float uIntensity;
-          uniform sampler2D uTouchTexture;
-          uniform float uGrainIntensity;
-          uniform vec3 uDarkNavy;
-          uniform float uGradientSize;
-          
-          varying vec2 vUv;
-          
-          float grain(vec2 uv, float time) {
-            vec2 grainUv = uv * uResolution * 0.5;
-            return (fract(sin(dot(grainUv + time, vec2(12.9898, 78.233))) * 43758.5453) * 2.0 - 1.0);
-          }
-          
-          vec3 getGradientColor(vec2 uv, float time) {
-            float gradientRadius = uGradientSize; // 이제 충분히 넓은 1.5 반경을 가집니다.
+            uniform float uTime;
+            uniform vec2 uResolution;
+            uniform vec3 uColor1;
+            uniform vec3 uColor2;
+            uniform vec3 uColor3;
+            uniform vec3 uColor4;
+            uniform vec3 uColor5;
+            uniform vec3 uColor6;
+            uniform float uSpeed;
+            uniform float uIntensity;
+            uniform sampler2D uTouchTexture;
+            uniform float uGrainIntensity;
+            uniform float uZoom;
+            uniform vec3 uDarkNavy;
+            uniform float uGradientSize;
+            uniform float uGradientCount;
+            uniform float uColor1Weight;
+            uniform float uColor2Weight;
             
-            // 6개의 센터가 부드럽게 유영합니다.
-            vec2 center1 = vec2(0.5 + sin(time * uSpeed * 0.4) * 0.4, 0.5 + cos(time * uSpeed * 0.5) * 0.4);
-            vec2 center2 = vec2(0.5 + cos(time * uSpeed * 0.6) * 0.5, 0.5 + sin(time * uSpeed * 0.45) * 0.5);
-            vec2 center3 = vec2(0.5 + sin(time * uSpeed * 0.35) * 0.45, 0.5 + cos(time * uSpeed * 0.55) * 0.45);
-            vec2 center4 = vec2(0.5 + cos(time * uSpeed * 0.5) * 0.4, 0.5 + sin(time * uSpeed * 0.4) * 0.4);
-            vec2 center5 = vec2(0.5 + sin(time * uSpeed * 0.7) * 0.35, 0.5 + cos(time * uSpeed * 0.6) * 0.35);
-            vec2 center6 = vec2(0.5 + cos(time * uSpeed * 0.45) * 0.5, 0.5 + sin(time * uSpeed * 0.65) * 0.5);
+            varying vec2 vUv;
+            #define PI 3.14159265359
             
-            float dist1 = length(uv - center1); float dist2 = length(uv - center2);
-            float dist3 = length(uv - center3); float dist4 = length(uv - center4);
-            float dist5 = length(uv - center5); float dist6 = length(uv - center6);
+            float grain(vec2 uv, float time) {
+              vec2 grainUv = uv * uResolution * 0.5;
+              float grainValue = fract(sin(dot(grainUv + time, vec2(12.9898, 78.233))) * 43758.5453);
+              return grainValue * 2.0 - 1.0;
+            }
             
-            // smoothstep 반경이 커져서 색이 완전히 물처럼 섞이게 됩니다.
-            float influence1 = 1.0 - smoothstep(0.0, gradientRadius, dist1);
-            float influence2 = 1.0 - smoothstep(0.0, gradientRadius, dist2);
-            float influence3 = 1.0 - smoothstep(0.0, gradientRadius, dist3);
-            float influence4 = 1.0 - smoothstep(0.0, gradientRadius, dist4);
-            float influence5 = 1.0 - smoothstep(0.0, gradientRadius, dist5);
-            float influence6 = 1.0 - smoothstep(0.0, gradientRadius, dist6);
+            vec3 getGradientColor(vec2 uv, float time) {
+              float gradientRadius = uGradientSize;
+              
+              vec2 center1 = vec2(0.5 + sin(time * uSpeed * 0.4) * 0.4, 0.5 + cos(time * uSpeed * 0.5) * 0.4);
+              vec2 center2 = vec2(0.5 + cos(time * uSpeed * 0.6) * 0.5, 0.5 + sin(time * uSpeed * 0.45) * 0.5);
+              vec2 center3 = vec2(0.5 + sin(time * uSpeed * 0.35) * 0.45, 0.5 + cos(time * uSpeed * 0.55) * 0.45);
+              vec2 center4 = vec2(0.5 + cos(time * uSpeed * 0.5) * 0.4, 0.5 + sin(time * uSpeed * 0.4) * 0.4);
+              vec2 center5 = vec2(0.5 + sin(time * uSpeed * 0.7) * 0.35, 0.5 + cos(time * uSpeed * 0.6) * 0.35);
+              vec2 center6 = vec2(0.5 + cos(time * uSpeed * 0.45) * 0.5, 0.5 + sin(time * uSpeed * 0.65) * 0.5);
+              
+              vec2 center7 = vec2(0.5 + sin(time * uSpeed * 0.55) * 0.38, 0.5 + cos(time * uSpeed * 0.48) * 0.42);
+              vec2 center8 = vec2(0.5 + cos(time * uSpeed * 0.65) * 0.36, 0.5 + sin(time * uSpeed * 0.52) * 0.44);
+              vec2 center9 = vec2(0.5 + sin(time * uSpeed * 0.42) * 0.41, 0.5 + cos(time * uSpeed * 0.58) * 0.39);
+              vec2 center10 = vec2(0.5 + cos(time * uSpeed * 0.48) * 0.37, 0.5 + sin(time * uSpeed * 0.62) * 0.43);
+              vec2 center11 = vec2(0.5 + sin(time * uSpeed * 0.68) * 0.33, 0.5 + cos(time * uSpeed * 0.44) * 0.46);
+              vec2 center12 = vec2(0.5 + cos(time * uSpeed * 0.38) * 0.39, 0.5 + sin(time * uSpeed * 0.56) * 0.41);
+              
+              float dist1 = length(uv - center1); float dist2 = length(uv - center2);
+              float dist3 = length(uv - center3); float dist4 = length(uv - center4);
+              float dist5 = length(uv - center5); float dist6 = length(uv - center6);
+              float dist7 = length(uv - center7); float dist8 = length(uv - center8);
+              float dist9 = length(uv - center9); float dist10 = length(uv - center10);
+              float dist11 = length(uv - center11); float dist12 = length(uv - center12);
+              
+              float influence1 = 1.0 - smoothstep(0.0, gradientRadius, dist1);
+              float influence2 = 1.0 - smoothstep(0.0, gradientRadius, dist2);
+              float influence3 = 1.0 - smoothstep(0.0, gradientRadius, dist3);
+              float influence4 = 1.0 - smoothstep(0.0, gradientRadius, dist4);
+              float influence5 = 1.0 - smoothstep(0.0, gradientRadius, dist5);
+              float influence6 = 1.0 - smoothstep(0.0, gradientRadius, dist6);
+              float influence7 = 1.0 - smoothstep(0.0, gradientRadius, dist7);
+              float influence8 = 1.0 - smoothstep(0.0, gradientRadius, dist8);
+              float influence9 = 1.0 - smoothstep(0.0, gradientRadius, dist9);
+              float influence10 = 1.0 - smoothstep(0.0, gradientRadius, dist10);
+              float influence11 = 1.0 - smoothstep(0.0, gradientRadius, dist11);
+              float influence12 = 1.0 - smoothstep(0.0, gradientRadius, dist12);
+              
+              vec2 rotatedUv1 = uv - 0.5; float angle1 = time * uSpeed * 0.15;
+              rotatedUv1 = vec2(rotatedUv1.x * cos(angle1) - rotatedUv1.y * sin(angle1), rotatedUv1.x * sin(angle1) + rotatedUv1.y * cos(angle1)) + 0.5;
+              vec2 rotatedUv2 = uv - 0.5; float angle2 = -time * uSpeed * 0.12;
+              rotatedUv2 = vec2(rotatedUv2.x * cos(angle2) - rotatedUv2.y * sin(angle2), rotatedUv2.x * sin(angle2) + rotatedUv2.y * cos(angle2)) + 0.5;
+              
+              float radialGradient1 = length(rotatedUv1 - 0.5); float radialGradient2 = length(rotatedUv2 - 0.5);
+              float radialInfluence1 = 1.0 - smoothstep(0.0, 0.8, radialGradient1);
+              float radialInfluence2 = 1.0 - smoothstep(0.0, 0.8, radialGradient2);
+              
+              vec3 color = vec3(0.0);
+              color += uColor1 * influence1 * (0.55 + 0.45 * sin(time * uSpeed)) * uColor1Weight;
+              color += uColor2 * influence2 * (0.55 + 0.45 * cos(time * uSpeed * 1.2)) * uColor2Weight;
+              color += uColor3 * influence3 * (0.55 + 0.45 * sin(time * uSpeed * 0.8)) * uColor1Weight;
+              color += uColor4 * influence4 * (0.55 + 0.45 * cos(time * uSpeed * 1.3)) * uColor2Weight;
+              color += uColor5 * influence5 * (0.55 + 0.45 * sin(time * uSpeed * 1.1)) * uColor1Weight;
+              color += uColor6 * influence6 * (0.55 + 0.45 * cos(time * uSpeed * 0.9)) * uColor2Weight;
+              
+              if (uGradientCount > 6.0) {
+                color += uColor1 * influence7 * (0.55 + 0.45 * sin(time * uSpeed * 1.4)) * uColor1Weight;
+                color += uColor2 * influence8 * (0.55 + 0.45 * cos(time * uSpeed * 1.5)) * uColor2Weight;
+                color += uColor3 * influence9 * (0.55 + 0.45 * sin(time * uSpeed * 1.6)) * uColor1Weight;
+                color += uColor4 * influence10 * (0.55 + 0.45 * cos(time * uSpeed * 1.7)) * uColor2Weight;
+              }
+              if (uGradientCount > 10.0) {
+                color += uColor5 * influence11 * (0.55 + 0.45 * sin(time * uSpeed * 1.8)) * uColor1Weight;
+                color += uColor6 * influence12 * (0.55 + 0.45 * cos(time * uSpeed * 1.9)) * uColor2Weight;
+              }
+              
+              color += mix(uColor1, uColor3, radialInfluence1) * 0.45 * uColor1Weight;
+              color += mix(uColor2, uColor4, radialInfluence2) * 0.4 * uColor2Weight;
+              
+              color = clamp(color, vec3(0.0), vec3(1.0)) * uIntensity;
+              float luminance = dot(color, vec3(0.299, 0.587, 0.114));
+              color = mix(vec3(luminance), color, 1.35);
+              color = pow(color, vec3(0.92)); 
+              
+              float brightness1 = length(color);
+              float mixFactor1 = max(brightness1 * 1.2, 0.15); 
+              color = mix(uDarkNavy, color, mixFactor1);
+              
+              float maxBrightness = 1.0; float brightness = length(color);
+              if (brightness > maxBrightness) { color = color * (maxBrightness / brightness); }
+              return color;
+            }
             
-            vec3 color = vec3(0.0);
-            color += uColor1 * influence1 * (0.55 + 0.45 * sin(time * uSpeed));
-            color += uColor2 * influence2 * (0.55 + 0.45 * cos(time * uSpeed * 1.2));
-            color += uColor3 * influence3 * (0.55 + 0.45 * sin(time * uSpeed * 0.8));
-            color += uColor4 * influence4 * (0.55 + 0.45 * cos(time * uSpeed * 1.3));
-            color += uColor5 * influence5 * (0.55 + 0.45 * sin(time * uSpeed * 1.1));
-            color += uColor6 * influence6 * (0.55 + 0.45 * cos(time * uSpeed * 0.9));
-            
-            color = clamp(color, vec3(0.0), vec3(1.0)) * uIntensity;
-            
-            // 색상 깊이감을 위한 보정
-            float luminance = dot(color, vec3(0.299, 0.587, 0.114));
-            color = mix(vec3(luminance), color, 1.35);
-            color = pow(color, vec3(0.92)); 
-            
-            // 베이스 네이비 컬러와 부드럽게 섞임
-            float mixFactor = max(length(color) * 1.2, 0.15); 
-            color = mix(uDarkNavy, color, mixFactor);
-            
-            return color;
-          }
-          
-          void main() {
-            vec2 uv = vUv;
-            
-            // 터치 왜곡 효과 계산
-            vec4 touchTex = texture2D(uTouchTexture, uv);
-            float vx = -(touchTex.r * 2.0 - 1.0);
-            float vy = -(touchTex.g * 2.0 - 1.0);
-            float intensity = touchTex.b;
-            
-            // 화면 찌그러짐을 대폭 줄여 깔끔하게 만듦
-            uv.x += vx * 0.15 * intensity; 
-            uv.y += vy * 0.15 * intensity;
-            
-            vec3 color = getGradientColor(uv, uTime);
-            color += grain(uv, uTime) * uGrainIntensity;
-            
-            color = clamp(color, vec3(0.0), vec3(1.0));
-            gl_FragColor = vec4(color, 1.0);
-          }
-        `
+            void main() {
+              vec2 uv = vUv;
+              vec4 touchTex = texture2D(uTouchTexture, uv);
+              float vx = -(touchTex.r * 2.0 - 1.0);
+              float vy = -(touchTex.g * 2.0 - 1.0);
+              float intensity = touchTex.b;
+              uv.x += vx * 0.8 * intensity;
+              uv.y += vy * 0.8 * intensity;
+              
+              vec2 center = vec2(0.5);
+              float dist = length(uv - center);
+              float ripple = sin(dist * 20.0 - uTime * 3.0) * 0.04 * intensity;
+              float wave = sin(dist * 15.0 - uTime * 2.0) * 0.03 * intensity;
+              uv += vec2(ripple + wave);
+              
+              vec3 color = getGradientColor(uv, uTime);
+              float grainValue = grain(uv, uTime);
+              color += grainValue * uGrainIntensity;
+              
+              float timeShift = uTime * 0.5;
+              color.r += sin(timeShift) * 0.02;
+              color.g += cos(timeShift * 1.4) * 0.02;
+              color.b += sin(timeShift * 1.2) * 0.02;
+              
+              float brightness2 = length(color);
+              float mixFactor2 = max(brightness2 * 1.2, 0.15); 
+              color = mix(uDarkNavy, color, mixFactor2);
+              
+              color = clamp(color, vec3(0.0), vec3(1.0));
+              float maxBrightness = 1.0;
+              float brightness = length(color);
+              if (brightness > maxBrightness) { color = color * (maxBrightness / brightness); }
+              
+              gl_FragColor = vec4(color, 1.0);
+            }
+          `
       });
       this.mesh = new THREE.Mesh(geometry, material);
       this.mesh.position.z = 0;
@@ -634,6 +698,7 @@ healing aesthetics ✦
     }
   }
 
+  // 3. 앱 구동 메인 클래스 (불필요한 UI 삭제, 색상 배분 완료)
   class App {
     constructor() {
       const canvas = document.getElementById('webgl-canvas');
@@ -651,7 +716,6 @@ healing aesthetics ✦
       this.camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 10000);
       this.camera.position.z = 50;
       this.scene = new THREE.Scene();
-      this.scene.background = new THREE.Color('#0A0E27'); 
       this.clock = new THREE.Clock();
 
       this.touchTexture = new TouchTexture();
@@ -666,24 +730,35 @@ healing aesthetics ✦
       
       // ====================================================================
       // 🎨 [여기서 색상을 변경하세요!] 
-      // 제공해주신 4가지 색상을 자연스럽게 섞이도록 6칸에 배분해두었습니다.
+      // 이전의 "어두운 배경 + 어두운 물감" 참사를 막기 위해,
+      // 6개의 물감(Orb)에는 눈에 띄는 밝고 비비드한 컬러들만 입혔습니다.
+      // 다크 네이비는 오직 심연(배경, uDarkNavy)으로만 사용합니다.
       // ====================================================================
       const uniforms = this.gradientBackground.uniforms;
-      uniforms.uColor1.value.set('#542AFE'); 
-      uniforms.uColor2.value.set('#0A0E27'); 
-      uniforms.uColor3.value.set('#AB2EFF'); 
-      uniforms.uColor4.value.set('#221FFF'); 
-      uniforms.uColor5.value.set('#542AFE'); 
-      uniforms.uColor6.value.set('#0A0E27'); 
+      uniforms.uColor1.value.set('#542AFE'); // 밝은 블루 퍼플
+      uniforms.uColor2.value.set('#AB2EFF'); // 비비드 퍼플
+      uniforms.uColor3.value.set('#221FFF'); // 비비드 블루
+      uniforms.uColor4.value.set('#542AFE'); // 밝은 블루 퍼플
+      uniforms.uColor5.value.set('#AB2EFF'); // 비비드 퍼플
+      uniforms.uColor6.value.set('#221FFF'); // 비비드 블루
       
-      uniforms.uDarkNavy.value.set('#0A0E27'); // 베이스 심연(배경) 컬러
+      this.scene.background = new THREE.Color('#0A0E27'); // 다크 네이비
+      uniforms.uDarkNavy.value.set('#0A0E27'); // 배경 전용 다크 네이비
+      
+      // 코드펜 원본과 동일한 세팅
+      uniforms.uGradientSize.value = 1.0; 
+      uniforms.uGradientCount.value = 6.0; 
+      uniforms.uSpeed.value = 1.2; 
+      uniforms.uIntensity.value = 1.8; 
+      uniforms.uColor1Weight.value = 1.0; 
+      uniforms.uColor2Weight.value = 1.0; 
       // ====================================================================
 
       this.render();
       this.tick();
       window.addEventListener("resize", () => this.onResize());
       window.addEventListener("mousemove", (ev) => this.onMouseMove(ev));
-      window.addEventListener("touchmove", (ev) => this.onTouchMove(ev));
+      window.addEventListener("touchmove", (ev) => this.onTouchMove(ev), {passive: false});
       document.addEventListener("visibilitychange", () => { if (!document.hidden) { this.render(); } });
     }
     
