@@ -25,10 +25,11 @@
   }
 
   /* ── WINDOWS 98 TASKBAR (1.5배 확대) ── */
+  /* ── WINDOWS 98 TASKBAR (80% 축소 버전) ── */
   #taskbar {
     position: fixed;
     bottom: 0; left: 0; right: 0;
-    height: 54px;
+    height: 44px; /* 기존 54px -> 44px로 축소 */
     background: #c0c0c0;
     border-top: 3px solid #fff;
     box-shadow: inset 0 3px 0 #dfdfdf;
@@ -45,28 +46,28 @@
     border-color: #fff #808080 #808080 #fff;
     color: black;
     font-weight: bold;
-    font-size: 21px;
-    padding: 0 18px;
+    font-size: 17px; /* 21px -> 17px */
+    padding: 0 14px; /* 18px -> 14px */
     display: flex;
     align-items: center;
     cursor: pointer;
   }
   .start-btn:active {
     border-color: #808080 #fff #fff #808080;
-    padding: 3px 15px 0 21px; 
+    padding: 3px 12px 0 16px; 
   }
-  .start-logo { margin-right: 9px; font-size: 24px; font-weight: normal; }
+  .start-logo { margin-right: 7px; font-size: 20px; font-weight: normal; }
 
-  .taskbar-items { flex: 1; padding: 0 12px; display: flex; gap: 6px; }
+  .taskbar-items { flex: 1; padding: 0 10px; display: flex; gap: 6px; }
   
   .system-tray {
     height: 100%;
     display: flex;
     align-items: center;
-    padding: 0 18px;
+    padding: 0 14px;
     border: 3px solid;
     border-color: #808080 #fff #fff #808080;
-    font-size: 18px;
+    font-size: 15px; /* 18px -> 15px */
     color: black;
   }
 
@@ -232,8 +233,8 @@
     .widget { display: none !important; }
     .window { width: 94vw !important; height: 85vh !important; left: 3vw !important; top: 5vh !important; }
     .works-grid { grid-template-columns: 1fr; }
-    #taskbar { height: 66px; }
-    .start-btn { font-size: 24px; padding: 0 24px; }
+    #taskbar { height: 48px; } /* 66px -> 52px로 축소 */
+    .start-btn { font-size: 19px; padding: 0 18px; } /* 24px -> 19px */
   }
 /* Resume 전용 뷰어 스타일 */
   #window-resume .window-body {
@@ -260,6 +261,93 @@
   /* 페이지 내부 텍스트 조정 */
   .resume-page .resume-header { border-bottom: 2px solid #000; }
   .resume-page .resume-section-title { background: #eee; border: 1px solid #000; }
+/* ── INTRO SCREEN STYLES ── */
+  #intro-screen {
+    position: fixed;
+    top: 0; left: 0; width: 100vw; height: 100vh;
+    background: #008080;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* transition 줄을 삭제하여 즉시 반응하게 만듭니다 */
+  }
+
+  .intro-window {
+    background: #c0c0c0;
+    border: 3px solid;
+    border-color: #dfdfdf #000 #000 #dfdfdf;
+    padding: 3px;
+    width: 360px;
+    text-align: center;
+    box-shadow: 2px 2px 0 #000;
+  }
+
+  .intro-titlebar {
+    background: #000080;
+    color: white;
+    padding: 4px 6px;
+    text-align: left;
+    font-weight: bold;
+    font-size: 16px;
+    letter-spacing: 1px;
+  }
+
+  .intro-body-content {
+    padding: 30px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+  }
+
+  .intro-text {
+    font-size: 17px;
+    color: black;
+    line-height: 1.5;
+  }
+
+  .blink-text {
+    font-size: 18px;
+    font-weight: bold;
+    color: #000080;
+    animation: blink 1s step-end infinite; /* 깜빡이는 효과 */
+  }
+
+  @keyframes blink { 
+    50% { opacity: 0; } 
+  }
+
+  .enter-icon {
+    width: 72px;
+    height: 72px;
+    cursor: pointer;
+    image-rendering: pixelated; /* 레트로 픽셀 느낌 유지 */
+    transition: transform 0.1s;
+  }
+
+  .enter-icon:active {
+    transform: translateY(4px); /* 클릭할 때 꾹 눌리는 느낌 */
+  }
+/* Index Gallery Layout */
+  .index-gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 15px;
+    padding: 10px;
+  }
+  .gallery-item {
+    background: #eee;
+    border: 2px solid #808080;
+    aspect-ratio: 1 / 1;
+    overflow: hidden;
+    cursor: pointer;
+  }
+  .gallery-item img {
+    width: 100%; height: 100%; object-fit: cover;
+    transition: transform 0.3s;
+  }
+  .gallery-item:hover img { transform: scale(1.1); }
 </style>
 
 <script type="importmap">
@@ -269,19 +357,47 @@
     }
   }
 </script>
+
+<script>
+  // 문서 로드 후 인트로 버튼 클릭 이벤트 연결 (권장 방식)
+  document.addEventListener('DOMContentLoaded', () => {
+    const enterBtn = document.getElementById('enter-btn');
+    const introScreen = document.getElementById('intro-screen');
+
+    if (enterBtn && introScreen) {
+      enterBtn.addEventListener('click', () => {
+        // 복잡한 타이머와 투명도 조절을 모두 지우고, 클릭 즉시 화면을 끕니다!
+        introScreen.style.display = 'none'; 
+      });
+    }
+  });
+</script>
 </head>
 <body>
-
+<div id="intro-screen">
+  <div class="intro-window">
+    <div class="intro-titlebar">
+      <span>Jihyeon_OS.exe</span>
+    </div>
+    <div class="intro-body-content">
+      <div class="intro-text">
+        System booted successfully.<br>
+        Loading UI/UX assets & Healing aesthetics...
+      </div>
+      <div class="blink-text">▶ CLICK TO INITIALIZE ◀</div>
+      
+      <img src="./enter-icon.png" class="enter-icon" id="enter-btn" alt="Enter">
+      
+    </div>
+  </div>
+</div>
 <canvas id="webgl-canvas"></canvas>
 
 <div id="desktop">
 
   <div class="icon" style="left:30px; top:30px" onclick="handleIconClick(this, 'works')">
     <div class="icon-img">
-     <img src="./directory_closed-4.png" alt="Works Icon" style="width: 100%; height: 100%; object-fit: contain;">
-        <path d="M4 10 h14 l4 4 h22 v24 h-40 z" fill="#ffcc00" stroke="black" stroke-width="1.5"/>
-        <path d="M4 18 h40 v16 h-40 z" fill="#ffe066" stroke="black" stroke-width="1.5"/>
-      </svg>
+      <img src="./directory_closed-4.png" alt="Works Icon" style="width: 100%; height: 100%; object-fit: contain;">
     </div>
     <span class="icon-label">Works</span>
   </div>
@@ -293,7 +409,7 @@
     <span class="icon-label">Resume_CV</span>
   </div>
 
-  <div class="widget" id="widget-notes" style="right:60px; top:60px; display:block;">
+  <div class="widget" id="widget-notes" style="right:60px; top:60px; display:block; z-index:51;">
     <div class="widget-titlebar" id="wt-notes">
       <span class="widget-title-text">Sticky Note</span>
       <div class="widget-close-btn" onclick="closeWidget('widget-notes', event)">X</div>
@@ -334,28 +450,28 @@ healing aesthetics ✦
     </div>
     <div class="window-body">
       <div class="works-grid">
-        <div class="project-card">
+        <div class="project-card" onclick="openDetail('Mood Diary App')">
           <div class="project-thumb">🎵</div>
           <div class="project-info">
             <div class="project-name">Mood Diary App</div>
             <div class="project-desc">Music-based healing journal with generative aesthetics</div>
           </div>
         </div>
-        <div class="project-card">
+        <div class="project-card" onclick="openDetail('Wellbeing Dashboard')">
           <div class="project-thumb">🌿</div>
           <div class="project-info">
             <div class="project-name">Wellbeing Dashboard</div>
             <div class="project-desc">Daily check-in system with minimal visual language</div>
           </div>
         </div>
-        <div class="project-card">
+        <div class="project-card" onclick="openDetail('Portfolio v1')">
           <div class="project-thumb">✦</div>
           <div class="project-info">
             <div class="project-name">Portfolio v1</div>
             <div class="project-desc">Interactive web portfolio with cosmic theme</div>
           </div>
         </div>
-        <div class="project-card">
+        <div class="project-card" onclick="openDetail('Design System')">
           <div class="project-thumb">📐</div>
           <div class="project-info">
             <div class="project-name">Design System</div>
@@ -434,24 +550,55 @@ healing aesthetics ✦
           </div>
         </div>
         
-        <div style="position:absolute; bottom:30px; left:50%; transform:translateX(-50%); font-size:14px; color:#888;">- 2 -</div>
+<div style="position:absolute; bottom:30px; left:50%; transform:translateX(-50%); font-size:14px; color:#888;">- 2 -</div>
       </div>
-
     </div>
   </div>
 
-<div id="taskbar">
+  <div class="window" id="window-detail" style="width:100vw; height:calc(100vh - 44px);">
+    <div class="window-titlebar" id="titlebar-detail">
+      <span class="window-title" id="detail-title">Project Detail</span>
+      <div class="win98-controls">
+        <div class="w-btn" onclick="closeWindow('detail')">X</div>
+      </div>
+    </div>
+    <div class="window-body" id="detail-body">
+      </div>
+  </div>
+
+  <div class="window" id="window-index" style="width:850px; height:600px;">
+    <div class="window-titlebar" id="titlebar-index">
+      <span class="window-title">All Works Index</span>
+      <div class="win98-controls">
+        <div class="w-btn" onclick="closeWindow('index')">X</div>
+      </div>
+    </div>
+    <div class="window-body">
+      <div class="index-gallery">
+        <div class="gallery-item"><img src="./work1.png" alt="work1"></div>
+        <div class="gallery-item"><img src="./work2.png" alt="work2"></div>
+        <div class="gallery-item"><img src="./work3.png" alt="work3"></div>
+        <div class="gallery-item"><img src="./work4.png" alt="work4"></div>
+      </div>
+    </div>
+  </div>
+  </div>
+</div> <div id="taskbar">
   <div class="start-btn" onclick="goHome()">
-   <img src="./windows-0.png" alt="Start" class="start-logo" style="width: 28px; height: 28px; object-fit: contain;">
+    <img src="./start-icon.png" alt="Start" class="start-logo" style="width: 22px; height: 22px; object-fit: contain;">
     HOME
   </div>
+  
+  <div class="start-btn" onclick="openWindow('index')" style="margin-left: 4px;">
+    INDEX
+  </div>
+  
   <div class="taskbar-items">
     </div>
   <div class="system-tray">
     <span id="clock">12:00 AM</span>
   </div>
 </div>
-
 <script type="module">
   // ── THREE.JS CUSTOM LIQUID GRADIENT SHADER ──
   import * as THREE from 'three';
@@ -592,7 +739,33 @@ healing aesthetics ✦
   });
 </script>
 <script>
-// ── UI LOGIC ──
+// 프로젝트 상세 보기 로직
+window.openDetail = function(projectName) {
+  const detailTitle = document.getElementById('detail-title');
+  const detailBody = document.getElementById('detail-body');
+  
+  detailTitle.innerText = projectName + " - Viewer";
+  
+ // 클릭한 프로젝트에 따라 다른 내용을 보여줍니다
+  detailBody.innerHTML = `
+    <div style="padding:40px; display:flex; flex-direction:column; min-height:100%;">
+      <h2 style="font-size:32px;">${projectName}</h2>
+      <p style="margin-top:15px; font-size:18px; line-height:1.6; color:#444;">
+        이 프로젝트의 상세 설명과 기획 의도, UI/UX 디자인 과정이 이곳에 들어갑니다.<br>
+        아트 디렉터로서 고민했던 비주얼 요소들을 정돈해서 보여주세요.
+      </p>
+      <div style="flex:1; width:100%; min-height:400px; background:#ddd; margin-top:30px; border: 2px dashed #888; display:flex; align-items:center; justify-content:center; font-size:24px; color:#666;">
+        [프로젝트 메인 이미지 및 포트폴리오 내용 쫙 보여주는 영역]
+      </div>
+    </div>
+  `;
+  
+  openWindow('detail');
+};
+
+// 드래그 기능도 새 창들에 적용
+makeDraggable(document.getElementById('window-detail'), 'titlebar-detail');
+makeDraggable(document.getElementById('window-index'), 'titlebar-index');
 
 // HOME Button Logic
 window.goHome = function() {
@@ -660,7 +833,7 @@ window.openWindow = function(id) {
   // 크기 및 위치 계산 (이전에 적용하신 1, 2번 방법)
   const winWidth = win.offsetWidth;
   const winHeight = win.offsetHeight;
-  const taskbarHeight = 54; 
+  const taskbarHeight = 44; 
 
   const centerX = (window.innerWidth - winWidth) / 2;
   const centerY = (window.innerHeight - taskbarHeight - winHeight) / 2;
