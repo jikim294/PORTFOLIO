@@ -99,8 +99,11 @@
     text-align: center;
     padding: 2px 6px;
   }
-  .icon.selected .icon-img { filter: sepia(1) hue-rotate(180deg) saturate(3); }
-  .icon.selected .icon-label { background: #000080; color: white; border: 2px dotted #fff; }
+  /* ── 데스크탑(마우스) 환경에서만 호버 효과 적용 ── */
+  @media (hover: hover) {
+    .icon:hover .icon-img { filter: sepia(1) hue-rotate(180deg) saturate(3); }
+    .icon:hover .icon-label { background: #000080; color: white; border: 2px dotted #fff; }
+  }
 
   /* ── WINDOWS 98 WINDOW (1.5배 확대) ── */
   .window {
@@ -739,26 +742,62 @@ healing aesthetics ✦
   });
 </script>
 <script>
-// 프로젝트 상세 보기 로직
+// 프로젝트 리스트 데이터를 배열로 관리합니다
+const projects = [
+  { id: 'Mood Diary App', icon: '🎵', desc: 'Music-based healing journal with generative aesthetics', imgFile: 'event.jpg' },
+  { id: 'Wellbeing Dashboard', icon: '🌿', desc: 'Daily check-in system with minimal visual language' },
+  { id: 'Portfolio v1', icon: '✦', desc: 'Interactive web portfolio with cosmic theme' },
+  { id: 'Design System', icon: '📐', desc: 'Component library with Figma + code handoff' }
+];
+
+// 프로젝트 상세 보기 로직 (좌측 사이드바 + 우측 콘텐츠 구조)
 window.openDetail = function(projectName) {
   const detailTitle = document.getElementById('detail-title');
   const detailBody = document.getElementById('detail-body');
   
-  detailTitle.innerText = projectName + " - Viewer";
+  detailTitle.innerText = "Explorer - " + projectName;
   
- // 클릭한 프로젝트에 따라 다른 내용을 보여줍니다
-  detailBody.innerHTML = `
-    <div style="padding:40px; display:flex; flex-direction:column; min-height:100%;">
-      <h2 style="font-size:32px;">${projectName}</h2>
-      <p style="margin-top:15px; font-size:18px; line-height:1.6; color:#444;">
-        이 프로젝트의 상세 설명과 기획 의도, UI/UX 디자인 과정이 이곳에 들어갑니다.<br>
-        아트 디렉터로서 고민했던 비주얼 요소들을 정돈해서 보여주세요.
-      </p>
-      <div style="flex:1; width:100%; min-height:400px; background:#ddd; margin-top:30px; border: 2px dashed #888; display:flex; align-items:center; justify-content:center; font-size:24px; color:#666;">
-        [프로젝트 메인 이미지 및 포트폴리오 내용 쫙 보여주는 영역]
+  // 1. 좌측 사이드바 (프로젝트 목록)
+  let sidebarHTML = `
+    <div style="width: 260px; background: #fff; border-right: 3px solid #dfdfdf; box-shadow: inset -2px 0 0 #808080; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 5px;">
+      <div style="font-weight: bold; color: #808080; margin-bottom: 10px; padding-left: 5px;">Folders</div>
+  `;
+  
+  projects.forEach(p => {
+    const isSelected = p.id === projectName;
+    const bg = isSelected ? '#000080' : 'transparent';
+    const color = isSelected ? '#fff' : '#000';
+    const border = isSelected ? '1px dotted #fff' : '1px solid transparent';
+    
+    sidebarHTML += `
+      <div onclick="openDetail('${p.id}')" style="padding: 8px 10px; cursor: pointer; background: ${bg}; color: ${color}; border: ${border}; display: flex; align-items: center; gap: 12px;">
+        <span style="font-size: 24px;">${p.icon}</span>
+        <span style="font-size: 16px; ${isSelected ? 'font-weight:bold;' : ''}">${p.id}</span>
       </div>
+    `;
+  });
+  sidebarHTML += `</div>`;
+
+  // 🔥 클릭한 프로젝트의 데이터를 'projects' 배열에서 쏙 뽑아옵니다!
+  const currentProject = projects.find(p => p.id === projectName);
+
+  // 2. 우측 메인 콘텐츠 영역 
+  let contentHTML = `
+    <div style="flex: 1; padding: 50px 60px; background: #fff; overflow-y: auto;">
+      <h2 style="font-size: 32px; margin-bottom: 10px; color: #000;">${projectName}</h2>
+      
+      <p style="font-size: 18px; line-height: 1.6; color: #444; border-bottom: 2px dashed #ccc; padding-bottom: 20px; margin-bottom: 30px;">
+        ${currentProject.desc}
+      </p>
+      
+      <img src="./${currentProject.imgFile}" alt="${projectName} Detail" style="width: 100%; height: auto; display: block; margin-bottom: 40px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
     </div>
   `;
+  
+  // 3. 사이드바와 콘텐츠를 합쳐서 창 안에 넣고 레이아웃 설정
+  detailBody.innerHTML = sidebarHTML + contentHTML;
+  detailBody.style.display = 'flex'; 
+  detailBody.style.padding = '0'; 
   
   openWindow('detail');
 };
@@ -935,8 +974,13 @@ document.querySelectorAll('.resize-handle').forEach(handle => {
 // Icon Click & Mobile View Support
 window.handleIconClick = function(el, windowId) {
   document.querySelectorAll('.icon').forEach(i => i.classList.remove('selected'));
-  el.classList.add('selected');
-  openWindow(windowId);
+  el.classList.add('selected'); // 1. 누르는 순간 파란색으로 변함
+  openWindow(windowId);         // 2. 창을 엽니다
+  
+  // 3. 0.3초(300ms) 뒤에 선택 상태를 자동으로 스윽 풀어줍니다!
+  setTimeout(() => {
+    el.classList.remove('selected');
+  }, 280);
 };
 
 document.getElementById('desktop').addEventListener('click', (e) => {
